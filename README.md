@@ -78,6 +78,11 @@ git clone --branch version2 https://github.com/AlejandroRomanIbanez/AWS_grocery.
 
 Before creating the database user, you can choose a custom username and password to enhance security. Replace `<your_secure_password>` with a strong password of your choice in the following commands.
 
+In Debian 13, choose your `${USERNAME}` as your custom database for easy psql command usage. If your `${USERNAME}` literally is "user", consider adding the following line in your `~/.bash_aliases` for executing all subsequent psql-commands as user `postgres`:
+```bash
+alias psql='sudo -u postgres psql'
+```
+
 Create database and user:
 
 ```sh
@@ -89,7 +94,7 @@ psql -U postgres -c "ALTER USER grocery_user WITH SUPERUSER;"
 ### 🔹 Populate Database
 
 ```sh
-psql -U grocery_user -d grocerymate_db -f backend/app/sqlite_dump_clean.sql
+psql --host=localhost --username=grocery_user --dbname=grocerymate_db --password --file=backend/app/sqlite_dump_clean.sql
 ```
 
 Verify insertion:
