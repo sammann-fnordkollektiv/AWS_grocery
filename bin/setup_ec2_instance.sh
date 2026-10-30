@@ -5,3 +5,6 @@ git --version >> ~/setup.log
 python3 --version >> ~/setup.log
 pip --version >> ~/setup.log
 psql --version >> ~/setup.log
+sudo /usr/bin/postgresql-setup --initdb
+sudo systemctl start postgresql
+sudo systemctl enable postgresql

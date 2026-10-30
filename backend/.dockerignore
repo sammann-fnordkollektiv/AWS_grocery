@@ -1,0 +1,11 @@
+.env*
+
+db_backup/
+#logs/
+.git/
+.idea/
+venv/
+__pycache__/
+*.py[cod]
+
+*.log

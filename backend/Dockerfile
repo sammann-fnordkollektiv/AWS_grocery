@@ -1,0 +1,1 @@
+/home/user/Git/msit/2026-11-04-eigenen-docker-container-für-die-app-bauen/Dockerfile
