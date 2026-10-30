@@ -1,0 +1,15 @@
+# cp oder ln -s this to /etc/systemd/system/my-aws-grocery-service
+[Unit]
+Description=My AWS grocery service to start on boot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ec2-user/AWS_grocery/backend
+ExecStart=/usr/bin/python3 /home/ec2-user/AWS_grocery/backend/run.py
+Restart=always
+RestartSec=10
+User=ec2-user
+
+[Install]
+WantedBy=multi-user.target
