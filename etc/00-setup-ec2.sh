@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Copy n paste this file in AWS EC2 launch instance
+# Debug? See /var/log/cloud-init-output.log
 
 sudo yum -y install screen
 sudo yum -y update
@@ -15,8 +16,8 @@ sudo newgrp docker
 echo "ll='ls -la'" >> ~/.bash_aliases
 source ~/.bash_aliases
 git clone https://github.com/sammann-fnordkollektiv/AWS_grocery.git
-git checkout dockerize-2
 cd AWS_grocery/
+git checkout dockerize-2
 bash ./etc/01-build-docker.sh
 docker images
 bash ./etc/02-run-docker.sh
