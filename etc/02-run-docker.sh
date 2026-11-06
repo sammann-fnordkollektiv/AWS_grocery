@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
-docker build --file "$(readlink -e backend/Dockerfile)" --tag grocerymate-app .
-docker run --interactive --tty --publish 5000:5000 grocerymate-app
+docker run \
+--interactive \
+--tty \
+--publish 5000:5000 \
+--restart on-failure:5 \
+grocerymate-app
 

@@ -11,9 +11,7 @@ newgrp docker
 docker info
 echo "ll='ls -la'" > ~/.bash_aliases
 git clone https://github.com/sammann-fnordkollektiv/AWS_grocery.git
-cd AWS_grocery
-sudo cp etc/aws-grocery.service /etc/systemd/aws-grocery.service
-sudo systemctl demon-reload
-sudo systemctl enable --now aws-grocery.service
-sudo systemctl status aws-grocery.service
+cd AWS_grocery/etc
+bash 01-build-docker.sh
+bash 02-run-docker.sh
 
