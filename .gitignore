@@ -6,3 +6,6 @@ venv/
 .env*
 env
 **/logs/*
+instance.json
+public.ip
+
