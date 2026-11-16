@@ -95,7 +95,7 @@ sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
 \getenv new_password PG_NEW_PASSWORD
 ALTER ROLE postgres PASSWORD :'new_password';
 SQL
-ch "${BACK_TO_THIS_PWD}"
+cd "${BACK_TO_THIS_PWD}"
 # set grocery_user postgres
 export GROCERY_USER_PASSWORD="$(openssl rand -hex 6)"
 # create env file for internal psql
