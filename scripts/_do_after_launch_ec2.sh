@@ -92,8 +92,8 @@ chown ec2-user:ec2-user "${ENV_FILE}"
 
 mkdir -p env
 echo "127.0.0.1:${PORT}:postgres:${POSTGRES_PASSWORD}" > "${PGPASSFILE}"
-PGPASSFILE="${MYPGPASSFILE}" psql -h 127.0.0.1 -p 15432 -U postgres -d postgres -f "${INIT_FILE}"
-PGPASSFILE="${MYPGPASSFILE}" psql -h 127.0.0.1 -p 15432 -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
+PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p 15432 -U postgres -d postgres -f "${INIT_FILE}"
+PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p 15432 -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
 psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
 psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
 
