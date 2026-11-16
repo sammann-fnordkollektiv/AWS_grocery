@@ -15,6 +15,12 @@ cd "${HOME}"
 #echo "Check init:" >> ~/.bashrc
 #echo "cat /var/log/cloud-init-output.log" >> ~/.bashrc
 
+# user env
+echo "ll='ls -la'" >> ~/.bash_aliases
+source ~/.bash_aliases
+
+# TODO install direnv
+
 if sudo dnf check-update --releasever=latest; then
   echo "[INFO]: There is no dist upgrade."
 else
@@ -75,13 +81,22 @@ git pull
 echo "########################################################################"
 echo " Initialize database - local AWS Grocery"
 echo "########################################################################"
-sudo yum -y install openssl
-ENV_FILE="$(pwd)/backend/.env"
 PORT=5432
 PGPASSFILE="env/.pqpass"
 INIT_FILE="etc/_do_init_db.sql"
 POPULATE_FILE="backend/app/sqlite_dump_clean.sql"
+sudo yum -y install openssl
+# set psql postgres
+export PG_NEW_PASSWORD="$(openssl rand -hex 6)"
+sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
+  -X -v ON_ERROR_STOP=1 -d postgres <<'SQL'
+\getenv new_password PG_NEW_PASSWORD
+ALTER ROLE postgres PASSWORD :'new_password';
+SQL
+# set grocery_user postgres
 export GROCERY_USER_PASSWORD="$(openssl rand -hex 6)"
+# create env file for internal psql
+ENV_FILE="$(pwd)/backend/.env"
 echo "JWT_SECRET_KEY=$(openssl rand -hex 6)" > "${ENV_FILE}"
 echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
 echo "POSTGRES_PASSWORD=${GROCERY_USER_PASSWORD}" >> "${ENV_FILE}"
@@ -89,10 +104,15 @@ echo "POSTGRES_DB=grocerymate_db" >> "${ENV_FILE}"
 echo "POSTGRES_HOST=localhost" >> "${ENV_FILE}"
 echo "POSTGRES_URI=postgresql://grocery_user:"${GROCERY_USER_PASSWORD}"@localhost:5432/grocerymate_db" >> "${ENV_FILE}"
 chown ec2-user:ec2-user "${ENV_FILE}"
-
+# create .pgfile
 mkdir -p env
+touch "${PGPASSFILE}"
+chmod 600 "${PGPASSFILE}"
+echo "127.0.0.1:${PORT}:postgres:${PG_NEW_PASSWORD}" > "${PGPASSFILE}"
+unset PG_NEW_PASSWORD
 echo "127.0.0.1:${PORT}:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
-env | grep GROCERY_USER_PASSWORD
+unset GROCERY_USER_PASSWORD
+
 PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
 PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
 psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
@@ -114,12 +134,6 @@ docker run \
 --publish 5000:5000 \
 --restart on-failure:5 \
 grocerymate-app
-
-
-# user env
-echo "ll='ls -la'" >> ~/.bash_aliases
-source ~/.bash_aliases
-
 
 
 # SSH GITHUB
