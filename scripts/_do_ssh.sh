@@ -3,7 +3,7 @@
 HOST="${1}"
 
 if [ -z "$HOST" ]; then
-   HOST="public.ip"
+   HOST="env/public.ip"
 fi
 
 if [ -f "${HOST}" ]; then

@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
-if [ -f "instance.json" ]; then
-    INSTANCE_ID=$(jq -r '.Instances[0].InstanceId' instance.json) 
+# TODO
+# https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_CreateDBInstance.html
+PUBLIC_IP_FILE="${HOME}/Git/AWS_grocery/env/public.ip"
+INSTANCE_FILE="${HOME}/Git/AWS_grocery/env/instance.json"
+
+if [ -f "${INSTANCE_FILE}" ]; then
+    INSTANCE_ID=$(jq -r '.Instances[0].InstanceId' "${INSTANCE_FILE}) 
     echo "[INFO] Delete ${INSTANCE_ID}"
     aws ec2 terminate-instances --instance-ids "${INSTANCE_ID}"
 fi
@@ -13,10 +18,10 @@ aws ec2 run-instances \
     --instance-type t2.micro \
     --key-name "Deine erste EC2-Instanz starten" \
     --security-group-ids sg-0ad57bf49a7fc000e \
-    --user-data file://etc/00-setup-ec2.sh > instance.json
+    --user-data file://etc/00-setup-ec2.sh > "${INSTANCE_FILE}
 
 echo "[INFO] Wait until new instance is ready"
-INSTANCE_ID=$(jq -r '.Instances[0].InstanceId' instance.json) 
+INSTANCE_ID=$(jq -r '.Instances[0].InstanceId' "${INSTANCE_FILE}") 
 aws ec2 wait instance-running --instance-ids "${INSTANCE_ID}"
 
 echo "[INFO] Get puplic IP of new instance"
@@ -34,5 +39,4 @@ while [ "${PUBLIC_IP}" == "" ]; do
 done
 
 echo "[INFO] Get puplic IP of new instance: ${PUBLIC_IP}"
-echo "${PUBLIC_IP}" > public.ip
-
+echo "${PUBLIC_IP}" > "${PUBLIC_IP_FILE}"
