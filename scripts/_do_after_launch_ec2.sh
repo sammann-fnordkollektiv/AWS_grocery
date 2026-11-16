@@ -81,17 +81,18 @@ PORT=5432
 PGPASSFILE="env/.pqpass"
 INIT_FILE="etc/_do_init_db.sql"
 POPULATE_FILE="backend/app/sqlite_dump_clean.sql"
-export POSTGRES_PASSWORD="$(openssl rand -hex 6)"
+export GROCERY_USER_PASSWORD="$(openssl rand -hex 6)"
 echo "JWT_SECRET_KEY=$(openssl rand -hex 6)" > "${ENV_FILE}"
 echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
-echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> "${ENV_FILE}"
+echo "POSTGRES_PASSWORD=${GROCERY_USER_PASSWORD}" >> "${ENV_FILE}"
 echo "POSTGRES_DB=grocerymate_db" >> "${ENV_FILE}"
 echo "POSTGRES_HOST=localhost" >> "${ENV_FILE}"
-echo "POSTGRES_URI=postgresql://grocery_user:"${POSTGRES_PASSWORD}"@localhost:5432/grocerymate_db" >> "${ENV_FILE}"
+echo "POSTGRES_URI=postgresql://grocery_user:"${GROCERY_USER_PASSWORD}"@localhost:5432/grocerymate_db" >> "${ENV_FILE}"
 chown ec2-user:ec2-user "${ENV_FILE}"
 
 mkdir -p env
-echo "127.0.0.1:${PORT}:postgres:${POSTGRES_PASSWORD}" > "${PGPASSFILE}"
+echo "127.0.0.1:${PORT}:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
+env | grep GROCERY_USER_PASSWORD
 PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
 PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
 psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"

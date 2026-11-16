@@ -1,9 +1,9 @@
-\getenv grocery_password GROCERY_PASSWORD
+\getenv grocery_user_password GROCERY_USER_PASSWORD
 
 DROP DATABASE IF EXISTS grocerymate_db;
 DROP ROLE IF EXISTS grocery_user;
 
-CREATE ROLE grocery_user LOGIN PASSWORD :'grocery_password';
+CREATE ROLE grocery_user LOGIN PASSWORD :'grocery_user_password';
 CREATE DATABASE grocerymate_db;
 
 \connect grocerymate_db
