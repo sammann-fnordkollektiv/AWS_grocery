@@ -88,11 +88,14 @@ POPULATE_FILE="backend/app/sqlite_dump_clean.sql"
 sudo yum -y install openssl
 # set psql postgres
 export PG_NEW_PASSWORD="$(openssl rand -hex 6)"
+BACK_TO_THIS_PWD="${pwd}"
+cd /tmp
 sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
   -X -v ON_ERROR_STOP=1 -d postgres <<'SQL'
 \getenv new_password PG_NEW_PASSWORD
 ALTER ROLE postgres PASSWORD :'new_password';
 SQL
+ch "${BACK_TO_THIS_PWD}"
 # set grocery_user postgres
 export GROCERY_USER_PASSWORD="$(openssl rand -hex 6)"
 # create env file for internal psql
@@ -117,6 +120,10 @@ PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgre
 PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
 psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
 psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
+
+echo "########################################################################"
+echo " Build and run docker"
+echo "########################################################################"
 
 cd "${HOME}/AWS_grocery"
 # Build aws-grocery docker
