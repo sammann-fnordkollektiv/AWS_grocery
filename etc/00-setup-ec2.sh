@@ -72,11 +72,11 @@ git checkout dockerize-2
 git pull
 
 echo "########################################################################"
-echo " Initialize database AWS Grocery"
+echo " Initialize database - local AWS Grocery"
 echo "########################################################################"
 sudo yum -y install openssl
 ENV_FILE="$(pwd)/backend/.env"
-export POSTGRES_PASSWORD="$(gpg --gen-random --armor 1 12)"
+export POSTGRES_PASSWORD="$(openssl rand -hex 6)"
 echo "JWT_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_hex(32))')" > "${ENV_FILE}"
 echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
 echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> "${ENV_FILE}"
