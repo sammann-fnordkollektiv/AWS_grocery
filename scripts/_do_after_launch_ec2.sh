@@ -112,14 +112,20 @@ mkdir -p env
 touch "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:postgres:${PG_NEW_PASSWORD}" > "${PGPASSFILE}"
-unset PG_NEW_PASSWORD
 echo "127.0.0.1:${PORT}:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
-unset GROCERY_USER_PASSWORD
 
-PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
-PGPASSFILE="${PGPASSFILE}" psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
+PGPASSFILE="${PGPASSFILE}" \
+GROCERY_USER_PASSWORD="$GROCERY_USER_PASSWORD" \
+psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
+PGPASSFILE="${PGPASSFILE}" \
+GROCERY_USER_PASSWORD="$GROCERY_USER_PASSWORD" \
+psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
+
 psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
 psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
+
+unset PG_NEW_PASSWORD
+unset GROCERY_USER_PASSWORD
 
 echo "########################################################################"
 echo " Build and run docker"
