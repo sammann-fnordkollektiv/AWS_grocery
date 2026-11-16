@@ -15,9 +15,9 @@ cd "${HOME}"
 #echo "Check init:" >> ~/.bashrc
 #echo "cat /var/log/cloud-init-output.log" >> ~/.bashrc
 
-# user env
-echo "ll='ls -la'" >> ~/.bash_aliases
-source ~/.bash_aliases
+# TODO user env
+#echo "ll='ls -la'" >> .bash_aliases
+#source ~/.bash_aliases
 
 # TODO install direnv
 
