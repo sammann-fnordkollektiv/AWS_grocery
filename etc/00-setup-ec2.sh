@@ -11,8 +11,9 @@ echo " Start setup"
 echo "#########################################################################"
 export HOME="/home/ec2-user"
 cd "${HOME}"
-echo "Check init:" >> ~/.bashrc
-echo "cat /var/log/cloud-init-output.log" >> ~/.bashrc
+# breaks scp
+#echo "Check init:" >> ~/.bashrc
+#echo "cat /var/log/cloud-init-output.log" >> ~/.bashrc
 
 if sudo dnf check-update --releasever=latest; then
   echo "[INFO]: There is no dist upgrade."
