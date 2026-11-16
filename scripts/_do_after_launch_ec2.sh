@@ -88,7 +88,7 @@ POPULATE_FILE="backend/app/sqlite_dump_clean.sql"
 sudo yum -y install openssl
 # set psql postgres
 export PG_NEW_PASSWORD="$(openssl rand -hex 6)"
-BACK_TO_THIS_PWD="${pwd}"
+BACK_TO_THIS_PWD="$(pwd)"
 cd /tmp
 sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
   -X -v ON_ERROR_STOP=1 -d postgres <<'SQL'
