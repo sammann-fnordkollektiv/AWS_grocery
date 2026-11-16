@@ -3,45 +3,78 @@
 # Copy n paste this file in AWS EC2 launch instance
 # Debug? See /var/log/cloud-init-output.log
 
-set -exuo pipefail
+set -euo pipefail
+#set -x
 
-echo "#################################################################"
+echo "#########################################################################"
 echo " Start setup"
-echo "#################################################################"
+echo "#########################################################################"
 export HOME="/home/ec2-user"
 cd "${HOME}"
 echo "Check init:" >> ~/.bashrc
 echo "cat /var/log/cloud-init-output.log" >> ~/.bashrc
 
+if sudo dnf check-update --releasever=latest; then
+  echo "[INFO]: There is no dist upgrade."
+else
+  status=$?
+  if [[ $status -eq 100 ]]; then
+    echo "[INFO]: There is a dist upgrade."
+    echo "[INFO]: This is not productive environment."
+    echo "[INFO]: Starting upgrade."
+    echo "[INFO]: And rebooting."
+    sudo dnf upgrade --releasever=latest -y
+    echo "[INFO]: Reboot - results in new IP"
+  fi
+fi
+
 sudo yum -y install screen
 sudo yum -y update
 sudo yum -y upgrade
 
-# install psql
+echo "########################################################################"
+echo " Install psql"
+echo "########################################################################"
 sudo yum install -y postgresql15-server postgresql15-contrib
-sudo postgresql-setup --initdb
+if result=$(sudo postgresql-setup --initdb 2>&1); then
+  echo "[INFO]: Database init successful."
+else
+  status=$?
+  printf '[WARN] Database init failed with %s:\n%s\n' \
+    "$status" "$result" >&2
+fi
 sudo systemctl enable --now postgresql
 sudo sed -i '/^host/s/ident$/md5/' /var/lib/pgsql/data/pg_hba.conf
 sudo systemctl restart postgresql
 systemctl status postgresql
 
-# install docker
+echo "#########################################################################"
+echo " Install docker"
+echo "#########################################################################"
 sudo yum -y install git docker
-sudo systemctl start docker
-sudo systemctl enable docker
+sudo systemctl enable --now docker
 sudo systemctl status docker
-sudo systemctl restart docker
 sudo usermod -aG docker ec2-user
-sudo newgrp docker
-docker info
+sudo systemctl is-active --quiet docker
+sudo docker info
 
-# Initialize aws-grocery
-su - ec2-user -c "git clone https://github.com/sammann-fnordkollektiv/AWS_grocery.git"
-git config --global --add safe.directory /home/ec2-user/AWS_grocery
+echo "########################################################################"
+echo " Git AWS Grocery"
+echo "########################################################################"
+if git clone https://github.com/sammann-fnordkollektiv/AWS_grocery.git; then
+  echo "[INFO]: Cloning git"
+  git config --global --add safe.directory /home/ec2-user/AWS_grocery
+else
+  echo "[INFO]: Already cloned"
+fi
 cd AWS_grocery/
 git checkout dockerize-2
+git pull
 
-# Initiatlize aws-grocery database
+echo "########################################################################"
+echo " Initialize database AWS Grocery"
+echo "########################################################################"
+sudo yum -y install openssl
 ENV_FILE="$(pwd)/backend/.env"
 export POSTGRES_PASSWORD="$(gpg --gen-random --armor 1 12)"
 echo "JWT_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_hex(32))')" > "${ENV_FILE}"
