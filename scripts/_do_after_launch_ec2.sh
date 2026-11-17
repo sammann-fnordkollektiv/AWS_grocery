@@ -138,10 +138,8 @@ DOCKERFILE="backend/Dockerfile"
 
 cd "${HOME}/AWS_grocery"
 # Build aws-grocery docker
-docker build \
---file "${DOCKERFILE}" \
---tag grocerymate-app \
-.
+docker build --file "${DOCKERFILE}" --tag grocerymate-app .
+
 docker images
 
 # Run aws-grocery docker
