@@ -113,7 +113,7 @@ mkdir -p env
 touch "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:postgres:postgres:${PG_NEW_PASSWORD}" > "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:grocery_user:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
-echo "127.0.0.1:${PORT}:grocerymate_db:postgres:${PG_NEW_PASSWORD}" > "${PGPASSFILE}"
+echo "127.0.0.1:${PORT}:grocerymate_db:postgres:${PG_NEW_PASSWORD}" >> "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
 echo "[INFO] init aws-gropcery database"
 PGPASSFILE="${PGPASSFILE}" \
