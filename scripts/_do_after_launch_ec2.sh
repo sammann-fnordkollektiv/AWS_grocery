@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 
+########################################################################
 # Copy n paste this file in AWS EC2 launch instance
 # Debug? See /var/log/cloud-init-output.log
+########################################################################
 
 set -euo pipefail
 #set -x
 
 echo "#########################################################################"
-echo " Start setup"
+echo " TODOS"
 echo "#########################################################################"
-export HOME="/home/ec2-user"
-cd "${HOME}"
-# breaks scp
+# VARS
+# YUMs
+
+# TODO: This breaks scp. But information on manual ec2 login would be nice
 #echo "Check init:" >> ~/.bashrc
 #echo "cat /var/log/cloud-init-output.log" >> ~/.bashrc
 
@@ -24,6 +27,11 @@ cd "${HOME}"
 # TODO SSH GITHUB
 # git remote set-url origin git@github.com:sammann-fnordkollektiv/AWS_grocery.git
 
+# TODO: sudo yum -y install screen
+
+echo "#########################################################################"
+echo " Handle OS"
+echo "#########################################################################"
 if sudo dnf check-update --releasever=latest; then
   echo "[INFO]: There is no dist upgrade"
 else
@@ -38,29 +46,36 @@ else
   fi
 fi
 
-sudo yum -y install screen
-sudo yum -y update
 sudo yum -y upgrade
-
+sudo yum -y update
 
 echo "########################################################################"
-echo " Git AWS Grocery"
+echo " Handle git for AWS Grocery"
 echo "########################################################################"
+HOME="/home/ec2-user"
+PROJECT_DIR="AWS_grocery"
 sudo yum -y install git
-if git clone https://github.com/sammann-fnordkollektiv/AWS_grocery.git; then
+
+cd "${HOME}"
+if git clone https://github.com/sammann-fnordkollektiv/"${PROJECT_DIR}".git; then
   echo "[INFO]: Cloning git"
-  git config --global --add safe.directory /home/ec2-user/AWS_grocery
+  git config --global --add safe.directory /home/ec2-user/"${PROJECT_DIR}"
 else
   echo "[INFO]: Already cloned"
 fi
-cd AWS_grocery/
+cd "${HOME}/${PROJECT_DIR}"
 git checkout dockerize-2
 git pull
 
 echo "########################################################################"
 echo " Install psql and database"
 echo "########################################################################"
+PORT=5432
+PGPASSFILE="env/.pgpass"
+INIT_FILE="etc/_do_init_db.sql"
+POPULATE_FILE="backend/app/sqlite_dump_clean.sql"
 sudo yum install -y postgresql15-server postgresql15-contrib
+
 if result=$(sudo postgresql-setup --initdb 2>&1); then
   echo "[INFO]: Database init successful"
 else
@@ -73,10 +88,6 @@ sudo sed -i '/^host/s/ident$/md5/' /var/lib/pgsql/data/pg_hba.conf
 sudo systemctl restart postgresql
 systemctl status postgresql --no-pager
 
-PORT=5432
-PGPASSFILE="env/.pgpass"
-INIT_FILE="etc/_do_init_db.sql"
-POPULATE_FILE="backend/app/sqlite_dump_clean.sql"
 sudo yum -y install openssl
 # set psql postgres
 export PG_NEW_PASSWORD="$(openssl rand -hex 6)"
