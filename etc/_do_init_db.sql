@@ -7,10 +7,15 @@
 DROP DATABASE IF EXISTS grocerymate_db;
 
 -- Delete, if role grocery_user already exists
-SELECT 1 AS role_exists
-FROM pg_roles
-WHERE rolname = 'grocery_user'
+SELECT EXISTS (
+  SELECT 1 FROM pg_roles WHERE rolname = 'grocery_user'
+) AS role_exists
 \gset
+
+\if :role_exists
+REASSIGN OWNED BY grocery_user TO postgres;
+DROP OWNED BY grocery_user;
+\endif
 
 -- Move stuff belonging to grocery_user to postgres
 \if :{?role_exists}

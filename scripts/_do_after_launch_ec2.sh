@@ -111,10 +111,9 @@ chown ec2-user:ec2-user "${ENV_FILE}"
 echo "[INFO] Set PGPPASSFILE ${PGPASSFILE}"
 mkdir -p env
 echo "" > "${PGPASSFILE}"
-echo "127.0.0.1:${PORT}:postgres:postgres:${PG_NEW_PASSWORD}" >> "${PGPASSFILE}"
-echo "127.0.0.1:${PORT}:grocery_user:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
-echo "127.0.0.1:${PORT}:grocerymate_db:postgres:${PG_NEW_PASSWORD}" >> "${PGPASSFILE}"
-echo "127.0.0.1:${PORT}:grocerymate_db:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
+# * = same password for all databases
+echo "127.0.0.1:${PORT}:*:postgres:${PG_NEW_PASSWORD}" >> "${PGPASSFILE}"
+echo "127.0.0.1:${PORT}:*:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
 echo "[INFO] init aws-gropcery database"
 PGPASSFILE="${PGPASSFILE}" \
