@@ -119,9 +119,9 @@ echo "[INFO] init aws-gropcery database"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="${GROCERY_USER_PASSWORD}" \
 psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
+echo "[INFO] populate aws-gropcery database"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="$GROCERY_USER_PASSWORD" \
-echo "[INFO] populate aws-gropcery database"
 psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
 echo "[INFO] check aws-gropcery database"
 PGPASSFILE="${PGPASSFILE}" \
