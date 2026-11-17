@@ -5,7 +5,6 @@ RDS_ENDPOINT="${2}"
 PUBLIC_IP_FILE="env/public.ip"
 RDS_ENDPOINT_FILE="env/rds.endpoint"
 SSH_KEY="~/.ssh/msit.pem"
-
 #
 # If HOST parameter passed, use that one
 #
@@ -22,19 +21,22 @@ if [ -f "${HOST}" ]; then
     TEMP=$(tr -d '\r\n ' < "${HOST}") 
     HOST="${TEMP}"
 else
+    echo "error host"
     exit 2
 fi
 
 if [ -z "${RDS_ENDPOINT}" ]; then
-   HOST="${RDS_ENDPOINT_FILE}"
+   RDS_ENDPOINT="${RDS_ENDPOINT_FILE}"
 fi
 
-if [ -f "${HOST}" ]; then
-    TEMP=$(tr -d '\r\n ' < "${HOST}") 
-    HOST="${TEMP}"
+if [ -f "${RDS_ENDPOINT}" ]; then
+    TEMP=$(tr -d '\r\n ' < "${RDS_ENDPOINT}") 
+    RDS_ENDPOINT="${TEMP}"
 else
-    exit 2
+    echo "error rds endpoint"
+    exit 3
 fi
 
 echo "Will listen on localhost:15432"
+echo ssh -N -L 15432:"${RDS_ENDPOINT}":5432 ec2-user@"${HOST}" -i "${SSH_KEY}" -v
 ssh -N -L 15432:"${RDS_ENDPOINT}":5432 ec2-user@"${HOST}" -i "${SSH_KEY}" -v

@@ -17,10 +17,10 @@ SELECT CASE
 \gset
 
 -- Move stuff belonging to grocery_user to postgres
-\if :role_exists
-REASSIGN OWNED BY grocery_user TO postgres;
-DROP OWNED BY grocery_user;
-\endif
+--\if :role_exists
+--REASSIGN OWNED BY grocery_user TO postgres;
+--DROP OWNED BY grocery_user;
+--\endif
 
 -- Now grocery_user can be dropped
 DROP ROLE IF EXISTS grocery_user;

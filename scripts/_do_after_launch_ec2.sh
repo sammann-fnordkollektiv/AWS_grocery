@@ -183,32 +183,10 @@ echo "DB_PORT=${PORT}" >> "${APP_ENV_FILE}"
 echo "DB_NAME=${DB_NAME}" >> "${APP_ENV_FILE}"
 echo "DB_USER=${DB_USER}" >> "${APP_ENV_FILE}"
 echo "DB_PASSWORD=${DB_PASS}" >> "${APP_ENV_FILE}"
+chmod 600 "${APP_ENV_FILE}"
 
-info "Setze RDS postgres user password"
-export PG_NEW_PASSWORD
-psql \
-  --no-psqlrc \
-  --set=ON_ERROR_STOP=1 \
-  --host="${ENDPOINT}" \
-  --port="${PORT}" \
-  --username=postgres \
-  --dbname=postgres <<'SQL'
-\getenv new_password PG_NEW_PASSWORD
-\if :{?new_password}
-ALTER ROLE postgres PASSWORD :'new_password';
-\else
-\echo 'ERROR: PG_NEW_PASSWORD is not set in PSQL'
-\quit 1
-\endif
-SQL
-
-
-
-
-
-#docker stop $(docker ps -q)
-#docker run --rm -it postgres:16 \
-#  psql "host=§{ENDPOINT} port=${PORT} dbname=postgres user=${DB_USER} connect_timeout=5" -W
+docker stop $(docker ps -q)
+docker run -d --name grocerymate-app --env-file "${APP_ENV_FILE}" -p 8080:8080 grocerymate-app
 
 # cleanup
 unset PG_NEW_PASSWORD
