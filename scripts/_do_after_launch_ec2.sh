@@ -145,22 +145,20 @@ echo "#########################################################################"
 echo " All the docker"
 echo "#########################################################################"
 sudo yum -y install docker
+DOCKERFILE="backend/Dockerfile"
+
+info "Set up docker"
 sudo systemctl enable --now docker
 sudo systemctl status docker --no-pager
 sudo usermod -aG docker ec2-user
 sudo systemctl is-active docker --no-pager
 sudo docker info | cat
 
-DOCKERFILE="backend/Dockerfile"
-# Build aws-grocery docker
-cd ~/AWS_grocery
-pwd
-whoami
+info "Build aws-grocery docker"
+cd "${HOME}/${PROJECT_DIR}"
 docker build -f "${DOCKERFILE}" -t grocerymate-app .
 
-docker images
-
-# Run aws-grocery docker
+info "Run aws-grocery docker"
 docker run \
 --network host \
 --env POSTGRES_HOST=localhost \
