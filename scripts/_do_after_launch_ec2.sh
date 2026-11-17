@@ -62,8 +62,8 @@ sudo yum -y install git docker
 sudo systemctl enable --now docker
 sudo systemctl status docker
 sudo usermod -aG docker ec2-user
-sudo systemctl is-active --quiet docker
-#sudo docker info | cat
+sudo systemctl is-active docker
+sudo docker info | cat
 
 echo "########################################################################"
 echo " Git AWS Grocery"
