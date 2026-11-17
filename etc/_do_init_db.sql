@@ -1,5 +1,5 @@
 \set ON_ERROR_STOP on
-\getenv grocery_user_password GROCERY_USER_PASSWORD
+\getenv grocery_user_password DB_PASS
 
 \connect postgres
 
