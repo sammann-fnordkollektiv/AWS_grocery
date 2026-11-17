@@ -141,7 +141,6 @@ PGPASSFILE="${PGPASSFILE}" \
 psql -h 127.0.0.1 -p "${PORT}" -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT * FROM users;"
 PGPASSFILE="${PGPASSFILE}" \
 psql -P pager=off -h 127.0.0.1 -p "${PORT}" -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT * FROM products;"
-unset PG_NEW_PASSWORD
 
 info "#########################################################################"
 info " All the docker"
@@ -185,10 +184,34 @@ echo "DB_NAME=${DB_NAME}" >> "${APP_ENV_FILE}"
 echo "DB_USER=${DB_USER}" >> "${APP_ENV_FILE}"
 echo "DB_PASSWORD=${DB_PASS}" >> "${APP_ENV_FILE}"
 
+info "Setze RDS postgres user password"
+export PG_NEW_PASSWORD
+psql \
+  --no-psqlrc \
+  --set=ON_ERROR_STOP=1 \
+  --host="${ENDPOINT}" \
+  --port="${PORT}" \
+  --username=postgres \
+  --dbname=postgres <<'SQL'
+\getenv new_password PG_NEW_PASSWORD
+\if :{?new_password}
+ALTER ROLE postgres PASSWORD :'new_password';
+\else
+\echo 'ERROR: PG_NEW_PASSWORD is not set in PSQL'
+\quit 1
+\endif
+SQL
+
+
+
+
+
 #docker stop $(docker ps -q)
 #docker run --rm -it postgres:16 \
 #  psql "host=§{ENDPOINT} port=${PORT} dbname=postgres user=${DB_USER} connect_timeout=5" -W
 
+# cleanup
+unset PG_NEW_PASSWORD
 
 
 
