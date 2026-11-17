@@ -7,9 +7,13 @@
 DROP DATABASE IF EXISTS grocerymate_db;
 
 -- Delete, if role grocery_user already exists
-SELECT EXISTS (
-  SELECT 1 FROM pg_roles WHERE rolname = 'grocery_user'
-) AS role_exists
+SELECT CASE
+         WHEN EXISTS (
+           SELECT 1 FROM pg_roles WHERE rolname = 'grocery_user'
+         )
+         THEN 'true'
+         ELSE 'false'
+       END AS role_exists
 \gset
 
 \if :role_exists
