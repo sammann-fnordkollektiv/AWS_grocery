@@ -83,8 +83,10 @@ PGPASSFILE="env/.pgpass"
 INIT_FILE="etc/_do_init_db.sql"
 POPULATE_FILE="backend/app/sqlite_dump_clean.sql"
 PG_NEW_PASSWORD="$(openssl rand -hex 16)"
-GROCERY_USER_PASSWORD="$(openssl rand -hex 16)"
+DB_PASS="$(openssl rand -hex 16)"
 ENV_FILE="$(pwd)/backend/.env"
+DB_USER="grocery_user"
+DB_NAME="grocerymate_db"
 
 info "PSQL Database initiatlisation"
 if result=$(sudo postgresql-setup --initdb 2>&1); then
@@ -111,11 +113,11 @@ cd "${HOME}/${PROJECT_DIR}"
 
 info "Create environment file ${ENV_FILE} for local psql"
 echo "JWT_SECRET_KEY=$(openssl rand -hex 6)" > "${ENV_FILE}"
-echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
-echo "POSTGRES_PASSWORD=${GROCERY_USER_PASSWORD}" >> "${ENV_FILE}"
-echo "POSTGRES_DB=grocerymate_db" >> "${ENV_FILE}"
+echo "POSTGRES_USER=${DB_USER}" >> "${ENV_FILE}"
+echo "POSTGRES_PASSWORD=${DB_PASS}" >> "${ENV_FILE}"
+echo "POSTGRES_DB=${DB_NAME}" >> "${ENV_FILE}"
 echo "POSTGRES_HOST=localhost" >> "${ENV_FILE}"
-echo "POSTGRES_URI=postgresql://grocery_user:"${GROCERY_USER_PASSWORD}"@localhost:5432/grocerymate_db" >> "${ENV_FILE}"
+echo "POSTGRES_URI=postgresql://${DB_USER}:${DB_PASS}@localhost:5432/${DB_NAME}" >> "${ENV_FILE}"
 chown ec2-user:ec2-user "${ENV_FILE}"
 
 info "Set PGPPASSFILE ${PGPASSFILE}"
@@ -123,22 +125,22 @@ mkdir -p env
 echo "" > "${PGPASSFILE}"
 # * = same password for all databases
 echo "127.0.0.1:${PORT}:*:postgres:${PG_NEW_PASSWORD}" >> "${PGPASSFILE}"
-echo "127.0.0.1:${PORT}:*:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
+echo "127.0.0.1:${PORT}:*:grocery_user:${DB_PASS}" >> "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
 
 info "init aws-grocery database"
 PGPASSFILE="${PGPASSFILE}" \
-GROCERY_USER_PASSWORD="${GROCERY_USER_PASSWORD}" \
+DB_PASS="${DB_PASS}" \
 psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
 info "populate aws-grocery database"
 PGPASSFILE="${PGPASSFILE}" \
-GROCERY_USER_PASSWORD="$GROCERY_USER_PASSWORD" \
-psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
+DB_PASS="$DB_PASS" \
+psql -h 127.0.0.1 -p "${PORT}" -U "${DB_USER}" -d "${DB_NAME}" -f "${POPULATE_FILE}"
 info "check aws-grocery database"
 PGPASSFILE="${PGPASSFILE}" \
-psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
+psql -h 127.0.0.1 -p "${PORT}" -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT * FROM users;"
 PGPASSFILE="${PGPASSFILE}" \
-psql -P pager=off -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
+psql -P pager=off -h 127.0.0.1 -p "${PORT}" -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT * FROM products;"
 unset PG_NEW_PASSWORD
 
 info "#########################################################################"
@@ -162,8 +164,22 @@ info "Run aws-grocery docker"
 docker run \
 --network host \
 --env POSTGRES_HOST=localhost \
---env POSTGRES_URI="postgresql://grocery_user:${GROCERY_USER_PASSWORD}@localhost:${PORT}/grocerymate_db" \
+--env POSTGRES_URI="postgresql://${DB_USER}:${DB_PASS}@localhost:${PORT}/${DB_NAME}" \
 --publish 5000:5000 \
 --restart on-failure:5 \
+--name grocery \
 --detach \
 grocerymate-app
+
+info "#########################################################################"
+info " Connect to RDS"
+info "#########################################################################"
+ENDPOINT="database-1.ch4mgewme567.eu-central-1.rds.amazonaws.com"
+
+#docker stop $(docker ps -q)
+#docker run --rm -it postgres:16 \
+#  psql "host=§{ENDPOINT} port=${PORT} dbname=postgres user=${DB_USER} connect_timeout=5" -W
+
+
+
+
