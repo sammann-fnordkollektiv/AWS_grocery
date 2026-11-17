@@ -108,13 +108,15 @@ echo "POSTGRES_DB=grocerymate_db" >> "${ENV_FILE}"
 echo "POSTGRES_HOST=localhost" >> "${ENV_FILE}"
 echo "POSTGRES_URI=postgresql://grocery_user:"${GROCERY_USER_PASSWORD}"@localhost:5432/grocerymate_db" >> "${ENV_FILE}"
 chown ec2-user:ec2-user "${ENV_FILE}"
+cat "${ENV_FILE}"
 # create .pgfile
 mkdir -p env
 touch "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:postgres:${PG_NEW_PASSWORD}" > "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
-
+cat "${PGPASSFILE}"
+echo "[INFO]: init aws-gropcery database"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="$GROCERY_USER_PASSWORD" \
 psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
