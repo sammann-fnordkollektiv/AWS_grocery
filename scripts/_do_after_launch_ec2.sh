@@ -142,13 +142,13 @@ DOCKERFILE="backend/Dockerfile"
 
 cd "${HOME}/AWS_grocery"
 # Build aws-grocery docker
-echo "docker build --file "${DOCKERFILE}" --tag grocerymate-app ."
 echo "[WARN] ich musste einmal manuell .docker löschen, weil docker buildx nicht gefunden wurde. /eom"
+"docker build --file "${DOCKERFILE}" --tag grocerymate-app ."
 
-echo docker images
+docker images
 
 # Run aws-grocery docker
-echo docker run \
+docker run \
 --network host \
 --env POSTGRES_HOST=localhost \
 --env POSTGRES_URI="postgresql://grocery_user:${POSTGRES_PASSWORD}@localhost:${PORT}/grocerymate_db" \
