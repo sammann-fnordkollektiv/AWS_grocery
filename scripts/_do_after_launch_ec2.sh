@@ -95,7 +95,7 @@ sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
 \getenv new_password PG_NEW_PASSWORD
 ALTER ROLE postgres PASSWORD :'new_password';
 SQL
-echo "[INFO] Set postgres password"
+echo "[INFO] Segrt postgres password"
 cd "${BACK_TO_THIS_PWD}"
 # set grocery_user postgres
 export GROCERY_USER_PASSWORD="$(openssl rand -hex 6)"
@@ -115,30 +115,31 @@ echo "" > "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:*:postgres:${PG_NEW_PASSWORD}" >> "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:*:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
-echo "[INFO] init aws-gropcery database"
+echo "[INFO] init aws-grocery database"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="${GROCERY_USER_PASSWORD}" \
 psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
-echo "[INFO] populate aws-gropcery database"
+echo "[INFO] populate aws-grocery database"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="$GROCERY_USER_PASSWORD" \
 psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
-echo "[INFO] check aws-gropcery database"
+echo "[INFO] check aws-grocery database"
 PGPASSFILE="${PGPASSFILE}" \
 psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
 PGPASSFILE="${PGPASSFILE}" \
-psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
+psql -P pager=off -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
 unset PG_NEW_PASSWORD
 unset GROCERY_USER_PASSWORD
 
 echo "########################################################################"
 echo " Build and run docker"
 echo "########################################################################"
+DOCKERFILE="backend/Dockerfile"
 
 cd "${HOME}/AWS_grocery"
 # Build aws-grocery docker
 docker build \
---file "$(readlink -e backend/Dockerfile)" \
+--file "${DOCKERFILE}" \
 --tag grocerymate-app \
 .
 docker images
