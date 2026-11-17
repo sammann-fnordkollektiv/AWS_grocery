@@ -21,6 +21,9 @@ cd "${HOME}"
 
 # TODO install direnv
 
+# TODO SSH GITHUB
+# git remote set-url origin git@github.com:sammann-fnordkollektiv/AWS_grocery.git
+
 if sudo dnf check-update --releasever=latest; then
   echo "[INFO]: There is no dist upgrade"
 else
@@ -138,7 +141,7 @@ DOCKERFILE="backend/Dockerfile"
 
 cd "${HOME}/AWS_grocery"
 # Build aws-grocery docker
-docker build --file "${DOCKERFILE}" --tag grocerymate-app .
+docker build -f "${DOCKERFILE}" --tag grocerymate-app .
 
 docker images
 
@@ -150,7 +153,3 @@ docker run \
 --publish 5000:5000 \
 --restart on-failure:5 \
 grocerymate-app
-
-
-# SSH GITHUB
-# git remote set-url origin git@github.com:sammann-fnordkollektiv/AWS_grocery.git
