@@ -61,7 +61,7 @@ systemctl status postgresql --no-pager
 echo "#########################################################################"
 echo " Install docker"
 echo "#########################################################################"
-sudo yum -y install git docker
+sudo yum -y install docker docker-buildx
 sudo systemctl enable --now docker
 sudo systemctl status docker --no-pager
 sudo usermod -aG docker ec2-user
@@ -71,6 +71,7 @@ sudo docker info | cat
 echo "########################################################################"
 echo " Git AWS Grocery"
 echo "########################################################################"
+sudo yum -y install git
 if git clone https://github.com/sammann-fnordkollektiv/AWS_grocery.git; then
   echo "[INFO]: Cloning git"
   git config --global --add safe.directory /home/ec2-user/AWS_grocery
