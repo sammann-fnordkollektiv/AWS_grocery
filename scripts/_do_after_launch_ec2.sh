@@ -53,7 +53,7 @@ fi
 sudo systemctl enable --now postgresql
 sudo sed -i '/^host/s/ident$/md5/' /var/lib/pgsql/data/pg_hba.conf
 sudo systemctl restart postgresql
-systemctl status postgresql
+systemctl status postgresql --no-pager
 
 echo "#########################################################################"
 echo " Install docker"
@@ -63,7 +63,7 @@ sudo systemctl enable --now docker
 sudo systemctl status docker
 sudo usermod -aG docker ec2-user
 sudo systemctl is-active --quiet docker
-sudo docker info
+sudo docker info | cat
 
 echo "########################################################################"
 echo " Git AWS Grocery"
@@ -93,6 +93,7 @@ cd /tmp
 sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
   -X -v ON_ERROR_STOP=1 -d postgres <<'SQL'
 \getenv new_password PG_NEW_PASSWORD
+select 'This is a comment' AS '';
 ALTER ROLE postgres PASSWORD :'new_password';
 SQL
 cd "${BACK_TO_THIS_PWD}"
