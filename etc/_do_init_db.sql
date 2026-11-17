@@ -16,13 +16,8 @@ SELECT CASE
        END AS role_exists
 \gset
 
-\if :role_exists
-REASSIGN OWNED BY grocery_user TO postgres;
-DROP OWNED BY grocery_user;
-\endif
-
 -- Move stuff belonging to grocery_user to postgres
-\if :{?role_exists}
+\if :role_exists
 REASSIGN OWNED BY grocery_user TO postgres;
 DROP OWNED BY grocery_user;
 \endif
