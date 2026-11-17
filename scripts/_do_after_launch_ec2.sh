@@ -95,7 +95,8 @@ sudo sed -i '/^host/s/ident$/md5/' /var/lib/pgsql/data/pg_hba.conf
 sudo systemctl restart postgresql
 systemctl status postgresql --no-pager
 
-echo "[INFO] Set postgres password"
+echo "[INFO] Set postgres password via ENV"
+export PG_NEW_PASSWORD
 cd /tmp
 sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
   -X -v ON_ERROR_STOP=1 -d postgres <<'SQL'
@@ -104,7 +105,6 @@ ALTER ROLE postgres PASSWORD :'new_password';
 SQL
 cd "${HOME}/${PROJECT_DIR}"
 
-# set grocery_user postgres
 echo "[INFO] Create environment file ${ENV_FILE} for local psql"
 echo "JWT_SECRET_KEY=$(openssl rand -hex 6)" > "${ENV_FILE}"
 echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
