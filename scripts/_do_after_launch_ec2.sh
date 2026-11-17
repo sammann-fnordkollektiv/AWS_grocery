@@ -93,7 +93,6 @@ cd /tmp
 sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
   -X -v ON_ERROR_STOP=1 -d postgres <<'SQL'
 \getenv new_password PG_NEW_PASSWORD
-select 'This is a comment' AS '';
 ALTER ROLE postgres PASSWORD :'new_password';
 SQL
 cd "${BACK_TO_THIS_PWD}"
