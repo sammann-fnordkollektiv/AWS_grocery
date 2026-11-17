@@ -141,12 +141,12 @@ DOCKERFILE="backend/Dockerfile"
 
 cd "${HOME}/AWS_grocery"
 # Build aws-grocery docker
-docker build -f "${DOCKERFILE}" --tag grocerymate-app .
+echo "docker build --file "${DOCKERFILE}" --tag grocerymate-app ."
 
-docker images
+echo docker images
 
 # Run aws-grocery docker
-docker run \
+echo docker run \
 --network host \
 --env POSTGRES_HOST=localhost \
 --env POSTGRES_URI="postgresql://grocery_user:${POSTGRES_PASSWORD}@localhost:${PORT}/grocerymate_db" \
