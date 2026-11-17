@@ -82,7 +82,7 @@ echo "########################################################################"
 echo " Initialize database - local AWS Grocery"
 echo "########################################################################"
 PORT=5432
-PGPASSFILE="env/.pqpass"
+PGPASSFILE="env/.pgpass"
 INIT_FILE="etc/_do_init_db.sql"
 POPULATE_FILE="backend/app/sqlite_dump_clean.sql"
 sudo yum -y install openssl
@@ -110,10 +110,11 @@ echo "POSTGRES_URI=postgresql://grocery_user:"${GROCERY_USER_PASSWORD}"@localhos
 chown ec2-user:ec2-user "${ENV_FILE}"
 echo "[INFO] Set PGPPASSFILE ${PGPASSFILE}"
 mkdir -p env
-touch "${PGPASSFILE}"
-echo "127.0.0.1:${PORT}:postgres:postgres:${PG_NEW_PASSWORD}" > "${PGPASSFILE}"
+echo "" > "${PGPASSFILE}"
+echo "127.0.0.1:${PORT}:postgres:postgres:${PG_NEW_PASSWORD}" >> "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:grocery_user:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:grocerymate_db:postgres:${PG_NEW_PASSWORD}" >> "${PGPASSFILE}"
+echo "127.0.0.1:${PORT}:grocerymate_db:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
 echo "[INFO] init aws-gropcery database"
 PGPASSFILE="${PGPASSFILE}" \
