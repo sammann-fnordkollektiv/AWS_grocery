@@ -62,7 +62,7 @@ sudo yum -y install git docker
 sudo systemctl enable --now docker
 sudo systemctl status docker
 sudo usermod -aG docker ec2-user
-sudo systemctl is-active docker
+sudo systemctl is-active docker --no-pager
 sudo docker info | cat
 
 echo "########################################################################"
