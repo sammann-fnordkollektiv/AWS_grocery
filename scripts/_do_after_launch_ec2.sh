@@ -32,17 +32,19 @@ set -euo pipefail
 echo "#########################################################################"
 echo " Handle OS"
 echo "#########################################################################"
+
+echo "[INFO] Check for dist-upgrades"
 if sudo dnf check-update --releasever=latest; then
-  echo "[INFO]: There is no dist upgrade"
+  echo "[INFO] There is no dist upgrade"
 else
   status=$?
   if [[ $status -eq 100 ]]; then
-    echo "[INFO]: There is a dist upgrade"
-    echo "[INFO]: This is not productive environment"
-    echo "[INFO]: Starting upgrade"
-    echo "[INFO]: And rebooting"
+    echo "[INFO] There is a dist upgrade"
+    echo "[INFO] This is not productive environment"
+    echo "[INFO] Starting upgrade"
+    echo "[INFO] And rebooting"
     sudo dnf upgrade --releasever=latest -y
-    echo "[INFO]: Reboot - results in new IP"
+    echo "[INFO] Reboot - results in new IP"
   fi
 fi
 
@@ -56,12 +58,13 @@ sudo yum -y install git
 HOME="/home/ec2-user"
 PROJECT_DIR="AWS_grocery"
 
+echo "[INFO] Get Git repo ${PROJECT_DIR}"
 cd "${HOME}"
 if git clone https://github.com/sammann-fnordkollektiv/"${PROJECT_DIR}".git; then
-  echo "[INFO]: Cloning git"
+  echo "[INFO] Cloning git"
   git config --global --add safe.directory /home/ec2-user/"${PROJECT_DIR}"
 else
-  echo "[INFO]: Already cloned"
+  echo "[INFO] Already cloned"
 fi
 cd "${HOME}/${PROJECT_DIR}"
 git checkout dockerize-2
@@ -79,11 +82,12 @@ PG_NEW_PASSWORD="$(openssl rand -hex 16)"
 GROCERY_USER_PASSWORD="$(openssl rand -hex 16)"
 ENV_FILE="$(pwd)/backend/.env"
 
+echo "[INFO] PSQL Database initiatlisation"
 if result=$(sudo postgresql-setup --initdb 2>&1); then
-  echo "[INFO]: Database init successful"
+  echo "[INFO]: PSQL Database init successful"
 else
   status=$?
-  printf '[WARN] Database init failed with %s:\n%s\n' \
+  printf '[WARN] PSQL database init failed with %s:\n%s\n' \
     "$status" "$result" >&2
 fi
 sudo systemctl enable --now postgresql
