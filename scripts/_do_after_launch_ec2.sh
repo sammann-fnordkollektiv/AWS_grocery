@@ -167,7 +167,6 @@ docker run \
 --env POSTGRES_URI="postgresql://${DB_USER}:${DB_PASS}@localhost:${PORT}/${DB_NAME}" \
 --publish 5000:5000 \
 --restart on-failure:5 \
---name grocery \
 --detach \
 grocerymate-app
 
@@ -178,6 +177,7 @@ ENDPOINT="database-1.ch4mgewme567.eu-central-1.rds.amazonaws.com"
 APP_ENV_FILE="env/app.env"
 
 info "Create app.env"
+cd "${HOME}/${PROJECT_DIR}"
 echo "" > ${APP_ENV_FILE}
 echo "DB_HOST=${ENDPOINT}" >> "${APP_ENV_FILE}"
 echo "DB_PORT=${PORT}" >> "${APP_ENV_FILE}"
