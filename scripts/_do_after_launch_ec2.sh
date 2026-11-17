@@ -33,9 +33,9 @@ info() { # 1 = text
   printf '\033[34m%s\033[0m\n' "[INFO] $*"
 }
 
-echo "#########################################################################"
-echo " Handle OS"
-echo "#########################################################################"
+info "#########################################################################"
+info " Handle OS"
+info "#########################################################################"
 
 info "Check for dist-upgrades"
 if sudo dnf check-update --releasever=latest; then
@@ -55,9 +55,9 @@ fi
 sudo yum -y upgrade
 sudo yum -y update
 
-echo "########################################################################"
-echo " Handle git for AWS Grocery"
-echo "########################################################################"
+info "########################################################################"
+info " Handle git for AWS Grocery"
+info "########################################################################"
 sudo yum -y install git
 HOME="/home/ec2-user"
 PROJECT_DIR="AWS_grocery"
@@ -74,9 +74,9 @@ cd "${HOME}/${PROJECT_DIR}"
 git checkout dockerize-2
 git pull
 
-echo "########################################################################"
-echo " Install psql and database"
-echo "########################################################################"
+info "########################################################################"
+info " Install psql and database"
+info "########################################################################"
 sudo yum install -y postgresql15-server postgresql15-contrib openssl
 PORT=5432
 PGPASSFILE="env/.pgpass"
@@ -141,9 +141,9 @@ PGPASSFILE="${PGPASSFILE}" \
 psql -P pager=off -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
 unset PG_NEW_PASSWORD
 
-echo "#########################################################################"
-echo " All the docker"
-echo "#########################################################################"
+info "#########################################################################"
+info " All the docker"
+info "#########################################################################"
 sudo yum -y install docker
 DOCKERFILE="backend/Dockerfile"
 
@@ -165,4 +165,5 @@ docker run \
 --env POSTGRES_URI="postgresql://grocery_user:${GROCERY_USER_PASSWORD}@localhost:${PORT}/grocerymate_db" \
 --publish 5000:5000 \
 --restart on-failure:5 \
+--detach \
 grocerymate-app
