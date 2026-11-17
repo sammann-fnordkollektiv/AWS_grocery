@@ -141,6 +141,8 @@ echo "########################################################################"
 DOCKERFILE="backend/Dockerfile"
 # Build aws-grocery docker
 cd ~/AWS_grocery
+pwd
+whoami
 docker build -f "${DOCKERFILE}" -t grocerymate-app .
 
 docker images
