@@ -99,7 +99,7 @@ echo "[INFO] postgres password set"
 cd "${BACK_TO_THIS_PWD}"
 # set grocery_user postgres
 export GROCERY_USER_PASSWORD="$(openssl rand -hex 6)"
-# create env file for internal psql
+echo "[INFO]: Create environment file ${ENV_FILE} for local psql"
 ENV_FILE="$(pwd)/backend/.env"
 echo "JWT_SECRET_KEY=$(openssl rand -hex 6)" > "${ENV_FILE}"
 echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
@@ -108,14 +108,12 @@ echo "POSTGRES_DB=grocerymate_db" >> "${ENV_FILE}"
 echo "POSTGRES_HOST=localhost" >> "${ENV_FILE}"
 echo "POSTGRES_URI=postgresql://grocery_user:"${GROCERY_USER_PASSWORD}"@localhost:5432/grocerymate_db" >> "${ENV_FILE}"
 chown ec2-user:ec2-user "${ENV_FILE}"
-cat "${ENV_FILE}"
-# create .pgfile
+echo "[INFO] Set PGPPASSFILE ${PGPASSFILE}"
 mkdir -p env
 touch "${PGPASSFILE}"
+echo "127.0.0.1:${PORT}:postgres:postgres:${PG_NEW_PASSWORD}" > "${PGPASSFILE}"
+echo "127.0.0.1:${PORT}:grocery_user:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
-echo "127.0.0.1:${PORT}:postgres:${PG_NEW_PASSWORD}" > "${PGPASSFILE}"
-echo "127.0.0.1:${PORT}:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
-cat "${PGPASSFILE}"
 echo "[INFO]: init aws-gropcery database"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="${GROCERY_USER_PASSWORD}" \
