@@ -143,6 +143,7 @@ DOCKERFILE="backend/Dockerfile"
 cd "${HOME}/AWS_grocery"
 # Build aws-grocery docker
 echo "docker build --file "${DOCKERFILE}" --tag grocerymate-app ."
+echo "[WARN] ich musste einmal manuell .docker löschen, weil docker buildx nicht gefunden wurde. /eom"
 
 echo docker images
 
