@@ -133,7 +133,6 @@ psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FR
 PGPASSFILE="${PGPASSFILE}" \
 psql -P pager=off -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
 unset PG_NEW_PASSWORD
-unset GROCERY_USER_PASSWORD
 
 echo "########################################################################"
 echo " Build and run docker"
@@ -151,7 +150,7 @@ docker images
 docker run \
 --network host \
 --env POSTGRES_HOST=localhost \
---env POSTGRES_URI="postgresql://grocery_user:${POSTGRES_PASSWORD}@localhost:${PORT}/grocerymate_db" \
+--env POSTGRES_URI="postgresql://grocery_user:${GROCERY_USER_PASSWORD}@localhost:${PORT}/grocerymate_db" \
 --publish 5000:5000 \
 --restart on-failure:5 \
 grocerymate-app
