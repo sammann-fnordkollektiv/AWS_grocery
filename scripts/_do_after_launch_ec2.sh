@@ -42,31 +42,6 @@ sudo yum -y install screen
 sudo yum -y update
 sudo yum -y upgrade
 
-echo "########################################################################"
-echo " Install psql"
-echo "########################################################################"
-sudo yum install -y postgresql15-server postgresql15-contrib
-if result=$(sudo postgresql-setup --initdb 2>&1); then
-  echo "[INFO]: Database init successful"
-else
-  status=$?
-  printf '[WARN] Database init failed with %s:\n%s\n' \
-    "$status" "$result" >&2
-fi
-sudo systemctl enable --now postgresql
-sudo sed -i '/^host/s/ident$/md5/' /var/lib/pgsql/data/pg_hba.conf
-sudo systemctl restart postgresql
-systemctl status postgresql --no-pager
-
-echo "#########################################################################"
-echo " Install docker"
-echo "#########################################################################"
-sudo yum -y install docker
-sudo systemctl enable --now docker
-sudo systemctl status docker --no-pager
-sudo usermod -aG docker ec2-user
-sudo systemctl is-active docker --no-pager
-sudo docker info | cat
 
 echo "########################################################################"
 echo " Git AWS Grocery"
@@ -83,8 +58,21 @@ git checkout dockerize-2
 git pull
 
 echo "########################################################################"
-echo " Initialize database - local AWS Grocery"
+echo " Install psql and database"
 echo "########################################################################"
+sudo yum install -y postgresql15-server postgresql15-contrib
+if result=$(sudo postgresql-setup --initdb 2>&1); then
+  echo "[INFO]: Database init successful"
+else
+  status=$?
+  printf '[WARN] Database init failed with %s:\n%s\n' \
+    "$status" "$result" >&2
+fi
+sudo systemctl enable --now postgresql
+sudo sed -i '/^host/s/ident$/md5/' /var/lib/pgsql/data/pg_hba.conf
+sudo systemctl restart postgresql
+systemctl status postgresql --no-pager
+
 PORT=5432
 PGPASSFILE="env/.pgpass"
 INIT_FILE="etc/_do_init_db.sql"
@@ -134,9 +122,16 @@ PGPASSFILE="${PGPASSFILE}" \
 psql -P pager=off -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
 unset PG_NEW_PASSWORD
 
-echo "########################################################################"
-echo " Build and run docker"
-echo "########################################################################"
+echo "#########################################################################"
+echo " All the docker"
+echo "#########################################################################"
+sudo yum -y install docker
+sudo systemctl enable --now docker
+sudo systemctl status docker --no-pager
+sudo usermod -aG docker ec2-user
+sudo systemctl is-active docker --no-pager
+sudo docker info | cat
+
 DOCKERFILE="backend/Dockerfile"
 # Build aws-grocery docker
 cd ~/AWS_grocery
