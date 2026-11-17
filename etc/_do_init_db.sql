@@ -1,9 +1,17 @@
+: "${PGPASSFILE:?PGPASSFILE ist nicht gesetzt}"
+: "${PORT:?PORT ist nicht gesetzt}"
+: "${INIT_FILE:?INIT_FILE ist nicht gesetzt}"
+: "${GROCERY_USER_PASSWORD:?Passwortvariable ist nicht gesetzt}"
+
 \getenv grocery_user_password GROCERY_USER_PASSWORD
+
+
 
 DROP DATABASE IF EXISTS grocerymate_db;
 DROP ROLE IF EXISTS grocery_user;
 
-CREATE ROLE grocery_user LOGIN PASSWORD :'grocery_user_password';
+CREATE ROLE grocery_user LOGIN
+  PASSWORD :'grocery_user_password';
 CREATE DATABASE grocerymate_db;
 
 \connect grocerymate_db
