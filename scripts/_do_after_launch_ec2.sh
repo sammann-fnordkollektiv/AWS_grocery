@@ -97,17 +97,22 @@ ALTER ROLE postgres PASSWORD :'new_password';
 SQL
 echo "[INFO] postgres password set"
 cd "${BACK_TO_THIS_PWD}"
+echo 1
 # set grocery_user postgres
 export GROCERY_USER_PASSWORD="$(openssl rand -hex 6)"
+echo 2
 # create env file for internal psql
 ENV_FILE="$(pwd)/backend/.env"
+echo 3
 echo "JWT_SECRET_KEY=$(openssl rand -hex 6)" > "${ENV_FILE}"
 echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
 echo "POSTGRES_PASSWORD=${GROCERY_USER_PASSWORD}" >> "${ENV_FILE}"
 echo "POSTGRES_DB=grocerymate_db" >> "${ENV_FILE}"
 echo "POSTGRES_HOST=localhost" >> "${ENV_FILE}"
 echo "POSTGRES_URI=postgresql://grocery_user:"${GROCERY_USER_PASSWORD}"@localhost:5432/grocerymate_db" >> "${ENV_FILE}"
+echo 4
 chown ec2-user:ec2-user "${ENV_FILE}"
+echo 5
 cat "${ENV_FILE}"
 # create .pgfile
 mkdir -p env
