@@ -122,11 +122,13 @@ GROCERY_USER_PASSWORD="${GROCERY_USER_PASSWORD}" \
 psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="$GROCERY_USER_PASSWORD" \
+echo "[INFO] populate aws-gropcery database"
 psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
-
-psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
-psql -h localhost -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
-
+echo "[INFO] check aws-gropcery database"
+PGPASSFILE="${PGPASSFILE}" \
+psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
+PGPASSFILE="${PGPASSFILE}" \
+psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
 unset PG_NEW_PASSWORD
 unset GROCERY_USER_PASSWORD
 
@@ -146,7 +148,7 @@ docker images
 docker run \
 --network host \
 --env POSTGRES_HOST=localhost \
---env POSTGRES_URI="postgresql://grocery_user:${POSTGRES_PASSWORD}@localhost:5432/grocerymate_db" \
+--env POSTGRES_URI="postgresql://grocery_user:${POSTGRES_PASSWORD}@localhost:${PORT}/grocerymate_db" \
 --publish 5000:5000 \
 --restart on-failure:5 \
 grocerymate-app
