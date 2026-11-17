@@ -185,11 +185,16 @@ echo "DB_USER=${DB_USER}" >> "${APP_ENV_FILE}"
 echo "DB_PASSWORD=${DB_PASS}" >> "${APP_ENV_FILE}"
 chmod 600 "${APP_ENV_FILE}"
 
+info "Stop all running docker"
 docker stop $(docker ps -q)
-docker run -d --name grocerymate-app --env-file "${APP_ENV_FILE}" -p 8080:8080 grocerymate-app
+
+info "Start docker with RDS"
+docker run \
+--name grocerymate-app \
+--env-file "${APP_ENV_FILE}" \ 
+--publish 5000:5000 \
+grocerymate-app
 
 # cleanup
 unset PG_NEW_PASSWORD
-
-
 
