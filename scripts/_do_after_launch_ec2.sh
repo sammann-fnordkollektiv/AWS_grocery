@@ -29,22 +29,26 @@ set -euo pipefail
 
 # TODO: sudo yum -y install screen
 
+info() { # 1 = text
+  printf '\033[34m%s\033[0m\n' "[INFO] $*"
+}
+
 echo "#########################################################################"
 echo " Handle OS"
 echo "#########################################################################"
 
-echo "[INFO] Check for dist-upgrades"
+info "Check for dist-upgrades"
 if sudo dnf check-update --releasever=latest; then
-  echo "[INFO] There is no dist upgrade"
+  info "There is no dist upgrade"
 else
   status=$?
   if [[ $status -eq 100 ]]; then
-    echo "[INFO] There is a dist upgrade"
-    echo "[INFO] This is not productive environment"
-    echo "[INFO] Starting upgrade"
-    echo "[INFO] And rebooting"
+    info "There is a dist upgrade"
+    info "This is not productive environment"
+    info "Starting upgrade"
+    info "And rebooting"
     sudo dnf upgrade --releasever=latest -y
-    echo "[INFO] Reboot - results in new IP"
+    info "Reboot - results in new IP"
   fi
 fi
 
@@ -58,13 +62,13 @@ sudo yum -y install git
 HOME="/home/ec2-user"
 PROJECT_DIR="AWS_grocery"
 
-echo "[INFO] Get Git repo ${PROJECT_DIR}"
+info "Get Git repo ${PROJECT_DIR}"
 cd "${HOME}"
 if git clone https://github.com/sammann-fnordkollektiv/"${PROJECT_DIR}".git; then
-  echo "[INFO] Cloning git"
+  info "Cloning git"
   git config --global --add safe.directory /home/ec2-user/"${PROJECT_DIR}"
 else
-  echo "[INFO] Already cloned"
+  info "Already cloned"
 fi
 cd "${HOME}/${PROJECT_DIR}"
 git checkout dockerize-2
@@ -82,7 +86,7 @@ PG_NEW_PASSWORD="$(openssl rand -hex 16)"
 GROCERY_USER_PASSWORD="$(openssl rand -hex 16)"
 ENV_FILE="$(pwd)/backend/.env"
 
-echo "[INFO] PSQL Database initiatlisation"
+info "PSQL Database initiatlisation"
 if result=$(sudo postgresql-setup --initdb 2>&1); then
   echo "[INFO]: PSQL Database init successful"
 else
@@ -95,7 +99,7 @@ sudo sed -i '/^host/s/ident$/md5/' /var/lib/pgsql/data/pg_hba.conf
 sudo systemctl restart postgresql
 systemctl status postgresql --no-pager
 
-echo "[INFO] Set postgres password via ENV"
+info "Set postgres password via ENV"
 export PG_NEW_PASSWORD
 cd /tmp
 sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
@@ -105,7 +109,7 @@ ALTER ROLE postgres PASSWORD :'new_password';
 SQL
 cd "${HOME}/${PROJECT_DIR}"
 
-echo "[INFO] Create environment file ${ENV_FILE} for local psql"
+info "Create environment file ${ENV_FILE} for local psql"
 echo "JWT_SECRET_KEY=$(openssl rand -hex 6)" > "${ENV_FILE}"
 echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
 echo "POSTGRES_PASSWORD=${GROCERY_USER_PASSWORD}" >> "${ENV_FILE}"
@@ -113,22 +117,24 @@ echo "POSTGRES_DB=grocerymate_db" >> "${ENV_FILE}"
 echo "POSTGRES_HOST=localhost" >> "${ENV_FILE}"
 echo "POSTGRES_URI=postgresql://grocery_user:"${GROCERY_USER_PASSWORD}"@localhost:5432/grocerymate_db" >> "${ENV_FILE}"
 chown ec2-user:ec2-user "${ENV_FILE}"
-echo "[INFO] Set PGPPASSFILE ${PGPASSFILE}"
+
+info "Set PGPPASSFILE ${PGPASSFILE}"
 mkdir -p env
 echo "" > "${PGPASSFILE}"
 # * = same password for all databases
 echo "127.0.0.1:${PORT}:*:postgres:${PG_NEW_PASSWORD}" >> "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:*:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
-echo "[INFO] init aws-grocery database"
+
+info "init aws-grocery database"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="${GROCERY_USER_PASSWORD}" \
 psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
-echo "[INFO] populate aws-grocery database"
+info "populate aws-grocery database"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="$GROCERY_USER_PASSWORD" \
 psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -f "${POPULATE_FILE}"
-echo "[INFO] check aws-grocery database"
+info "check aws-grocery database"
 PGPASSFILE="${PGPASSFILE}" \
 psql -h 127.0.0.1 -p "${PORT}" -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
 PGPASSFILE="${PGPASSFILE}" \
