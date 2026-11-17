@@ -8,11 +8,11 @@
 set -euo pipefail
 #set -x
 
-echo "#########################################################################"
-echo " TODOS"
-echo "#########################################################################"
-# VARS
+#########################################################################
+# TODOS
+#########################################################################
 # YUMs
+# VARS
 
 # TODO: This breaks scp. But information on manual ec2 login would be nice
 #echo "Check init:" >> ~/.bashrc
@@ -52,9 +52,9 @@ sudo yum -y update
 echo "########################################################################"
 echo " Handle git for AWS Grocery"
 echo "########################################################################"
+sudo yum -y install git
 HOME="/home/ec2-user"
 PROJECT_DIR="AWS_grocery"
-sudo yum -y install git
 
 cd "${HOME}"
 if git clone https://github.com/sammann-fnordkollektiv/"${PROJECT_DIR}".git; then
@@ -70,11 +70,14 @@ git pull
 echo "########################################################################"
 echo " Install psql and database"
 echo "########################################################################"
+sudo yum install -y postgresql15-server postgresql15-contrib openssl
 PORT=5432
 PGPASSFILE="env/.pgpass"
 INIT_FILE="etc/_do_init_db.sql"
 POPULATE_FILE="backend/app/sqlite_dump_clean.sql"
-sudo yum install -y postgresql15-server postgresql15-contrib
+PG_NEW_PASSWORD="$(openssl rand -hex 16)"
+GROCERY_USER_PASSWORD="$(openssl rand -hex 16)"
+ENV_FILE="$(pwd)/backend/.env"
 
 if result=$(sudo postgresql-setup --initdb 2>&1); then
   echo "[INFO]: Database init successful"
@@ -88,21 +91,16 @@ sudo sed -i '/^host/s/ident$/md5/' /var/lib/pgsql/data/pg_hba.conf
 sudo systemctl restart postgresql
 systemctl status postgresql --no-pager
 
-sudo yum -y install openssl
-# set psql postgres
-export PG_NEW_PASSWORD="$(openssl rand -hex 6)"
-BACK_TO_THIS_PWD="$(pwd)"
+echo "[INFO] Set postgres password"
 cd /tmp
 sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
   -X -v ON_ERROR_STOP=1 -d postgres <<'SQL'
 \getenv new_password PG_NEW_PASSWORD
 ALTER ROLE postgres PASSWORD :'new_password';
 SQL
-echo "[INFO] Segrt postgres password"
-cd "${BACK_TO_THIS_PWD}"
+cd "${HOME}/${PROJECT_DIR}"
+
 # set grocery_user postgres
-export GROCERY_USER_PASSWORD="$(openssl rand -hex 6)"
-ENV_FILE="$(pwd)/backend/.env"
 echo "[INFO] Create environment file ${ENV_FILE} for local psql"
 echo "JWT_SECRET_KEY=$(openssl rand -hex 6)" > "${ENV_FILE}"
 echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
