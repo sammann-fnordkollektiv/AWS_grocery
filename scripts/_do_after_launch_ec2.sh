@@ -139,11 +139,9 @@ echo "########################################################################"
 echo " Build and run docker"
 echo "########################################################################"
 DOCKERFILE="backend/Dockerfile"
-
-cd "${HOME}/AWS_grocery"
 # Build aws-grocery docker
-echo "[WARN] ich musste einmal manuell .docker löschen, weil docker buildx nicht gefunden wurde. /eom"
-"docker build --file "${DOCKERFILE}" --tag grocerymate-app ."
+cd ~/AWS_grocery
+docker build -f "${DOCKERFILE}" -t grocerymate-app .
 
 docker images
 
