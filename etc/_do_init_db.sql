@@ -1,17 +1,30 @@
-: "${PGPASSFILE:?PGPASSFILE ist nicht gesetzt}"
-: "${PORT:?PORT ist nicht gesetzt}"
-: "${INIT_FILE:?INIT_FILE ist nicht gesetzt}"
-: "${GROCERY_USER_PASSWORD:?Passwortvariable ist nicht gesetzt}"
-
+\set ON_ERROR_STOP on
 \getenv grocery_user_password GROCERY_USER_PASSWORD
 
+\connect postgres
 
-
+-- Delete databse completely
 DROP DATABASE IF EXISTS grocerymate_db;
+
+-- Delete, if role grocery_user already exists
+SELECT 1 AS role_exists
+FROM pg_roles
+WHERE rolname = 'grocery_user'
+\gset
+
+-- Move stuff belonging to grocery_user to postgres
+\if :{?role_exists}
+REASSIGN OWNED BY grocery_user TO postgres;
+DROP OWNED BY grocery_user;
+\endif
+
+-- Now grocery_user can be dropped
 DROP ROLE IF EXISTS grocery_user;
 
+-- Initialize database from anew
 CREATE ROLE grocery_user LOGIN
   PASSWORD :'grocery_user_password';
+
 CREATE DATABASE grocerymate_db;
 
 \connect grocerymate_db

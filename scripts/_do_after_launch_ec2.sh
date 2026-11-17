@@ -22,14 +22,14 @@ cd "${HOME}"
 # TODO install direnv
 
 if sudo dnf check-update --releasever=latest; then
-  echo "[INFO]: There is no dist upgrade."
+  echo "[INFO]: There is no dist upgrade"
 else
   status=$?
   if [[ $status -eq 100 ]]; then
-    echo "[INFO]: There is a dist upgrade."
-    echo "[INFO]: This is not productive environment."
-    echo "[INFO]: Starting upgrade."
-    echo "[INFO]: And rebooting."
+    echo "[INFO]: There is a dist upgrade"
+    echo "[INFO]: This is not productive environment"
+    echo "[INFO]: Starting upgrade"
+    echo "[INFO]: And rebooting"
     sudo dnf upgrade --releasever=latest -y
     echo "[INFO]: Reboot - results in new IP"
   fi
@@ -44,7 +44,7 @@ echo " Install psql"
 echo "########################################################################"
 sudo yum install -y postgresql15-server postgresql15-contrib
 if result=$(sudo postgresql-setup --initdb 2>&1); then
-  echo "[INFO]: Database init successful."
+  echo "[INFO]: Database init successful"
 else
   status=$?
   printf '[WARN] Database init failed with %s:\n%s\n' \
@@ -95,12 +95,12 @@ sudo --preserve-env=PG_NEW_PASSWORD -u postgres psql \
 \getenv new_password PG_NEW_PASSWORD
 ALTER ROLE postgres PASSWORD :'new_password';
 SQL
-echo "[INFO] postgres password set"
+echo "[INFO] Set postgres password"
 cd "${BACK_TO_THIS_PWD}"
 # set grocery_user postgres
 export GROCERY_USER_PASSWORD="$(openssl rand -hex 6)"
 ENV_FILE="$(pwd)/backend/.env"
-echo "[INFO]: Create environment file ${ENV_FILE} for local psql"
+echo "[INFO] Create environment file ${ENV_FILE} for local psql"
 echo "JWT_SECRET_KEY=$(openssl rand -hex 6)" > "${ENV_FILE}"
 echo "POSTGRES_USER=grocery_user" >> "${ENV_FILE}"
 echo "POSTGRES_PASSWORD=${GROCERY_USER_PASSWORD}" >> "${ENV_FILE}"
@@ -114,7 +114,7 @@ touch "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:postgres:postgres:${PG_NEW_PASSWORD}" > "${PGPASSFILE}"
 echo "127.0.0.1:${PORT}:grocery_user:grocery_user:${GROCERY_USER_PASSWORD}" >> "${PGPASSFILE}"
 chmod 600 "${PGPASSFILE}"
-echo "[INFO]: init aws-gropcery database"
+echo "[INFO] init aws-gropcery database"
 PGPASSFILE="${PGPASSFILE}" \
 GROCERY_USER_PASSWORD="${GROCERY_USER_PASSWORD}" \
 psql -h 127.0.0.1 -p "${PORT}" -U postgres -d postgres -f "${INIT_FILE}"
