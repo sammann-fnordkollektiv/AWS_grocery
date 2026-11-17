@@ -61,7 +61,7 @@ systemctl status postgresql --no-pager
 echo "#########################################################################"
 echo " Install docker"
 echo "#########################################################################"
-sudo yum -y install docker docker-buildx
+sudo yum -y install docker
 sudo systemctl enable --now docker
 sudo systemctl status docker --no-pager
 sudo usermod -aG docker ec2-user
