@@ -26,12 +26,12 @@ WORKDIR /app
 USER appuser
 
 COPY --chown=appuser:appuser backend/requirements.txt .
-COPY --chown=appuser:appuser backend/  /app/backend/
-COPY --chown=appuser:appuser frontend/ /app/frontend/.
-
 RUN python -m venv "$VIRTUAL_ENV" \
- && python -m pip install --upgrade pip \
  && python -m pip install --no-cache-dir --requirement requirements.txt
+
+COPY --chown=appuser:appuser backend/  /app/backend/
+COPY --chown=appuser:appuser frontend/ /app/frontend/
+
 
 ########################################################################
 #
