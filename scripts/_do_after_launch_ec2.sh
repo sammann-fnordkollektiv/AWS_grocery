@@ -88,7 +88,7 @@ ENV_FILE="$(pwd)/backend/.env"
 DB_USER="grocery_user"
 DB_NAME="grocerymate_db"
 
-info "PSQL Database initiatlisation"
+info "PSQL Database initialisation"
 if result=$(sudo postgresql-setup --initdb 2>&1); then
   echo "[INFO]: PSQL Database init successful"
 else
@@ -175,6 +175,15 @@ info "#########################################################################"
 info " Connect to RDS"
 info "#########################################################################"
 ENDPOINT="database-1.ch4mgewme567.eu-central-1.rds.amazonaws.com"
+APP_ENV_FILE="env/app.env"
+
+info "Create app.env"
+echo "" > ${APP_ENV_FILE}
+echo "DB_HOST=${ENDPOINT}" >> "${APP_ENV_FILE}"
+echo "DB_PORT=${PORT}" >> "${APP_ENV_FILE}"
+echo "DB_NAME=${DB_NAME}" >> "${APP_ENV_FILE}"
+echo "DB_USER=${DB_USER}" >> "${APP_ENV_FILE}"
+echo "DB_PASSWORD=${DB_PASS}" >> "${APP_ENV_FILE}"
 
 #docker stop $(docker ps -q)
 #docker run --rm -it postgres:16 \
