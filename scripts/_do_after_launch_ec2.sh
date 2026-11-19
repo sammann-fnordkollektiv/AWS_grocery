@@ -59,7 +59,7 @@ info "########################################################################"
 info " Handle git for AWS Grocery"
 info "########################################################################"
 sudo yum -y install git
-HOME="/home/ec2-user"
+export HOME="/home/ec2-user" # export fir git config --global
 PROJECT_DIR="AWS_grocery"
 
 info "Get Git repo ${PROJECT_DIR}"

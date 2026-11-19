@@ -19,8 +19,8 @@ aws ec2 run-instances \
     --instance-type t2.micro \
     --key-name "Deine erste EC2-Instanz starten" \
     --security-group-ids sg-0ad57bf49a7fc000e \
-    --user-data file://"${AFTER_LAUNCH}" > "${INSTANCE_FILE}"
-    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=my-aws-store}]'
+    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=my-aws-store}]' \
+    --user-data file://"${AFTER_LAUNCH}" > "${INSTANCE_FILE}" 
 
 echo "[INFO] Wait until new instance is ready"
 INSTANCE_ID=$(jq -r '.Instances[0].InstanceId' "${INSTANCE_FILE}") 
