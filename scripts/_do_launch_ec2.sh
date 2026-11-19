@@ -14,7 +14,7 @@ fi
 
 echo "[INFO] Launch new instance"
 aws ec2 run-instances \
-    --image-id ami-01376afa3e7def694 \
+    --image-id ami-0f3f7d98b433d3e84 \
     --count 1 \
     --instance-type t2.micro \
     --key-name "Deine erste EC2-Instanz starten" \
