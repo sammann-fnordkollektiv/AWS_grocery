@@ -7,6 +7,7 @@ if [ -z "$HOST" ]; then
 fi
 
 if [ -f "${HOST}" ]; then
+    echo "host is file"
     TEMP=$(tr -d '\r\n ' < "${HOST}") 
     HOST="${TEMP}"
 fi

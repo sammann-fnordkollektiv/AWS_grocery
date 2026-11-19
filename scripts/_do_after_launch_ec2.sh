@@ -6,7 +6,7 @@
 ########################################################################
 
 set -euo pipefail
-#set -x
+set -x
 
 #########################################################################
 # TODOS
@@ -66,7 +66,7 @@ info "Get Git repo ${PROJECT_DIR}"
 cd "${HOME}"
 if git clone https://github.com/sammann-fnordkollektiv/"${PROJECT_DIR}".git; then
   info "Cloning git"
-  git config --global --add safe.directory /home/ec2-user/"${PROJECT_DIR}"
+  git config --global --add safe.directory "${HOME}"/"${PROJECT_DIR}"
 else
   info "Already cloned"
 fi
@@ -190,7 +190,6 @@ docker stop $(docker ps -q)
 
 info "Start docker with RDS"
 docker run \
---name grocerymate-app \
 --env-file "${APP_ENV_FILE}" \ 
 --publish 5000:5000 \
 grocerymate-app
