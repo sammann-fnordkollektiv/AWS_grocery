@@ -12,7 +12,8 @@
 	* [x] [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/)
 * [ ] [AWS CDK](https://aws.amazon.com/de/cdk/faqs/) (imperative), Python
 	* [x] Installation (see below)
-	* [x] Authentication (see below) 
+	* [ ] Authentication (see below)
+		* [ ] TODO: Understand aws configure list output? 	
 	* [ ] Define AWS ressources with AWS CDK
 		* [ ] 2x EC2 with Amazon Linux (latest)
 		* [ ] 3x subnets in VPC
@@ -42,6 +43,37 @@
 
 ## Authentication
 
+### aws configure sso
+
+1. Login to AWS account via [AWS Access Portal](https://masterschool.awsapps.com/start/#/)
+	1. Click on `Account Name`
+	2. Click on `Access keys`
+	3. Window `Get credentials fro Administration Access` opens
+2. In terminal:
+```
+aws configure sso [Enter]
+SSO session name (Recommended): cedrik [Enter]
+SSO start URL [None]: <1ee 1.3> [Enter]
+SSO region [None]: <see 1.3> [Enter]
+SSO registration scopes [sso:account:access]: <leave default> [Enter]
+```
+3. In browser:
+	1. Login (authenticate `aws configure sso`)
+	2. Click `allow access`
+4. Test in browser:
+    1. See
+```
+...
+CLI profile name [<profile-name>]:
+...
+```
+	2. Copy output in _not versioned_ _gitignored_ `env/stuff` for later
+	3. Enter `aws sso login --profile <profile-name - see 3.3>`
+	4. Enter `aws sts get-caller-identity --profile <profile-name - see 3.3>`
+	5. Enter `aws s3 ls --profile <profile-name - see 3.3>`
+	6. Enter `aws configure list`
+	7. Enter `export AWS_PROFILE=<profile-name - see 3.3>`, Commands in 4.3-6 should work without `--profile ...` 
+
 ### [Failed] Clickops
 
 1. Login to AWS account via [AWS Access Portal](https://masterschool.awsapps.com/start/#/)
@@ -70,10 +102,10 @@
 # System
 sudo apt update -y
 sudo apt upgrade -y
-sudo apt install -y python3 python3-venv python3-pip nodejs npm
+sudo apt install -y python3 python3-venv python3-pip nodejs npm awscli
 sudo apt autoremove -y
 node --version # must be newer than 22!
-# if `node --version` less than 22
+## if `node --version` less than 22
 sudo apt install curl
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
 exit # close and reopen terminal
@@ -83,6 +115,7 @@ node --version
 npm --version
 sudo npm install -g aws-cdk
 cdk --version
+aws --version
 # Project
 cd ~/Git/AWS_grovery/
 mkdir infrastructure
@@ -90,6 +123,10 @@ cd infrastructure
 cdk init app --language python
 python3 -m venv .venv
 echo 'source .venv/bin/activate' > .envrc
+echo 'export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+nvm use --silent default
+' >> .envrc 
 direnv allow
 source .venv/bin/activate
 python -m pip install -r requirements.txt
@@ -97,6 +134,11 @@ pip install --upgrade pip
 python -m pip freeze > requirements.txt # later useful command
 cdk ls
 cdk synth
+# Authentication
+aws configure sso # see # Authentication ## aws configure sso
+cdk bootstrap
+cdk diff
+cdk deploy
 ```
 
 # Welcome to your CDK Python project!
