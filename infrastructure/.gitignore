@@ -1,0 +1,27 @@
+# General
+*.swp
+
+# Python
+*.egg-info
+*.py[cod]
+__pycache__
+__pycache__/
+.pytest_cache
+.pytest_cache/
+.venv
+.venv/
+
+# CDK-Output
+cdk.out
+cdk.out/
+
+# CDK asset staging directory
+.cdk.staging
+
+# Lokale Geheimnisse und Umgebungsvariablen
+.env
+.env.*
+!.env.example
+
+# Lokale AWS-CLI-Zugangsdaten, falls sie versehentlich im Projekt liegen
+.aws/
