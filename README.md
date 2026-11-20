@@ -96,6 +96,16 @@ CLI profile name [<profile-name>]:
 * Video https://www.youtube.com/watch?v=7xngnjfIlK4
 * Text [Different methods to provide user access](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction_identity-management.html?icmpid=docs_iam_console#AccessControlMethods)
 
+## Development
+
+* [x] Add aws profile to `./infrastructure/.envrc`
+* [x] Useful commands
+```
+cdk diff # Look at diff
+cdk deploy --require-approval=never # Make it so!
+```
+* [ ] ...  
+
 ## Installation
 
 ```
@@ -135,7 +145,7 @@ python -m pip freeze > requirements.txt # later useful command
 cdk ls
 cdk synth
 # Authentication
-aws configure sso # see # Authentication ## aws configure sso
+aws configure sso # see '# Authentication' '## aws configure sso'
 cdk bootstrap
 cdk diff
 cdk deploy
