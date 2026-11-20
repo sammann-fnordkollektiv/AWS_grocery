@@ -55,6 +55,10 @@ fi
 sudo yum -y upgrade
 sudo yum -y update
 
+info "Do ssh"
+printf "PasswordAuthentication no\\nPubkeyAuthentication yes\\nPermitRootLogin no\\n" > /etc/ssh/sshd_config.d/99-key-only.conf
+sshd -t && systemctl reload ssh"
+
 info "########################################################################"
 info " Handle git for AWS Grocery"
 info "########################################################################"

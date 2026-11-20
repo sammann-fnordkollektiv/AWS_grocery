@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from aws_cdk import (
     CfnOutput,
     Stack,
@@ -52,6 +54,10 @@ class ContainerEc2Stack(Stack):
             key_pair_name,
         )
 
+        bootstrap_script = (
+            Path(__file__).resolve().parents[2] / "scripts" / "_aws_bootstrap.sh"
+        ).read_text()
+
         instance = ec2.Instance(
             self,
             "ContainerHost",
@@ -61,17 +67,7 @@ class ContainerEc2Stack(Stack):
             machine_image=ec2.MachineImage.latest_amazon_linux2023(),
             security_group=security_group,
             key_pair=key_pair,
-        )
-
-        instance.add_user_data(
-            "set -eux",
-            "apt-get update",
-            "apt-get install -y docker.io",
-            "systemctl enable --now docker",
-            'printf "PasswordAuthentication no\\nPubkeyAuthentication yes\\nPermitRootLogin no\\n" '
-            "> /etc/ssh/sshd_config.d/99-key-only.conf",
-            "sshd -t && systemctl reload ssh",
-            ## TODO: _do_after_launch.sh
+            user_data=ec2.UserData.custom(bootstrap_script),
         )
 
         CfnOutput(
@@ -83,5 +79,5 @@ class ContainerEc2Stack(Stack):
         CfnOutput(
             self,
             "SshCommand",
-            value=f"ssh ec2-user@{instance.instance_public_ip}",
+            value=f"ssh ec2-user@{instance.instance_public_ip} -i ~/.ssh/msit.pem",
         )
