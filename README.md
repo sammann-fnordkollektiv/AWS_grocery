@@ -12,7 +12,7 @@
 	* [x] [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/)
 * [ ] [AWS CDK](https://aws.amazon.com/de/cdk/faqs/) (imperative), Python
 	* [x] Installation (see below)
-	* [ ] Authentication (see below) 
+	* [x] Authentication (see below) 
 	* [ ] Define AWS ressources with AWS CDK
 		* [ ] 2x EC2 with Amazon Linux (latest)
 		* [ ] 3x subnets in VPC
@@ -39,6 +39,30 @@
 * [ ] Clean Up
 	* [ ] Diff with original repo and remove all unrequired
 	* [ ] Move this README to `infrastructure/`
+
+## Authentication
+
+### [Failed] Clickops
+
+1. Login to AWS account via [AWS Access Portal](https://masterschool.awsapps.com/start/#/)
+2. Search for `IAM` and click
+3. Click `IAM Users`
+4. Click `Create User`
+5. Enter `cedrik`
+6. Click `Next`
+7. Click `Set permissions`
+8. Chose `Attach policies directly`
+9. Click `AmazonRDSFullAccess`
+10. Click `AmazonEC2FullAccess`
+11. Click `IAMFullAccess`
+12. Click `AmazonS3FullAccess`
+13. Click `AmazonDynamoDBFullAccess`
+14. Fail, masterschool.com disallows further users. Use your own user then.
+
+### References
+
+* Video https://www.youtube.com/watch?v=7xngnjfIlK4
+* Text [Different methods to provide user access](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction_identity-management.html?icmpid=docs_iam_console#AccessControlMethods)
 
 ## Installation
 
