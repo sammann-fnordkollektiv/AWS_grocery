@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+set -x
 
 PORT='15432'
 MYPGPASSFILE="$HOME/Git/AWS_grocery/env/.pgpass"

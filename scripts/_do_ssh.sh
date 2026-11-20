@@ -13,5 +13,5 @@ if [ -f "${HOST}" ]; then
 fi
 
 echo "${HOST}"
-chromium "${HOST}":5000
+#chromium "${HOST}":5000
 ssh -o StrictHostKeyChecking=accept-new  -i ~/.ssh/msit.pem ec2-user@"${HOST}"

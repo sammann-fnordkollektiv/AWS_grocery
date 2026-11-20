@@ -160,6 +160,15 @@ cd "${HOME}/${PROJECT_DIR}"
 docker build -f "${DOCKERFILE}" -t grocerymate-app .
 
 info "Run aws-grocery docker"
+echo "docker run \
+--network host \
+--env POSTGRES_HOST=localhost \
+--env POSTGRES_URI="postgresql://${DB_USER}:${DB_PASS}@localhost:${PORT}/${DB_NAME}" \
+--publish 5000:5000 \
+--restart on-failure:5 \
+--detach \
+grocerymate-app" > "${HOME}"/"${PROJECT_DIR}"/scripts/_do_run_docker_with_local_db.sh
+
 docker run \
 --network host \
 --env POSTGRES_HOST=localhost \
@@ -189,6 +198,10 @@ info "Stop all running docker"
 docker stop $(docker ps -q)
 
 info "Start docker with RDS"
+echo "docker run \
+--env-file "${APP_ENV_FILE}" \ 
+--publish 5000:5000 \
+grocerymate-app" > "${HOME}"/"${PROJECT_DIR}"/scripts/_do_run_docker_with_rds.sh
 docker run \
 --env-file "${APP_ENV_FILE}" \ 
 --publish 5000:5000 \
