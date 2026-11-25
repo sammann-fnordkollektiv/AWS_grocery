@@ -46,3 +46,52 @@ is_pwd_correct() {
         exit 2
     fi
 }
+
+################################################################################
+# AWS Login
+################################################################################
+
+common_login_aws() {
+  export ACCOUNT=304588611738
+  export AWS_PROFILE="AdministratorAccess-${ACCOUNT}"
+  export AWS_DEFAULT_REGION="$(aws configure get region --profile "${AWS_PROFILE}")"
+
+  if aws sts get-caller-identity --profile "${AWS_PROFILE}" >/dev/null 2>&1; then
+    nice 'Already logged in'
+  else
+    error 'Not logged in. Do it now in opened browser.'
+    aws sso login --profile "${AWS_PROFILE}" || return 1
+  fi
+}
+
+###############################################################################
+# AWS Secrets Manager
+###############################################################################
+
+common_set_aws_secrets() {
+  export SECRET_ID_POSTGRES_URI="aws-grocery-postgres-uri"
+  export SECRET_ID_JWT_SECRET_KEY="aws-grocery-jwt-secret"
+}
+
+###############################################################################
+# Docker environment
+###############################################################################
+
+common_set_docker_env () { # 1 path
+  DOCKER_ENV="${1}.env"
+  export DOCKER_TAG="grocery_app"
+  echo "" > "${DOCKER_ENV}"
+  echo "AWS_PROFILE=${AWS_PROFILE}" >> "${DOCKER_ENV}"
+  echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> "${DOCKER_ENV}"
+  echo "SECRET_ID_POSTGRES_URI=${SECRET_ID_POSTGRES_URI}" >> "${DOCKER_ENV}"
+  echo "SECRET_ID_JWT_SECRET_KEY=${SECRET_ID_JWT_SECRET_KEY}" >> "${DOCKER_ENV}"
+}
+
+###############################################################################
+# AWS ECR environment
+###############################################################################
+
+common_set_ecr_env() {
+  export REPO_NAME="grocery-app"
+  export REPO_URI="${ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${REPO_NAME}"
+}
