@@ -15,6 +15,10 @@
 * [ ] Inform tutors, that commits to forks are not counted by heatmap
 * [ ] Do exercises.
 
+## TODOS
+
+* [ ] Extend run-more-securely.py to run on AWS _and_ locally
+
 ---
 
 Taken from the original README.md
