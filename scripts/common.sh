@@ -52,18 +52,21 @@ is_pwd_correct() {
 ################################################################################
 
 common_login_aws() {
+  unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
   export ACCOUNT=304588611738
   export AWS_PROFILE="AdministratorAccess-${ACCOUNT}"
   export AWS_DEFAULT_REGION="$(aws configure get region --profile "${AWS_PROFILE}")"
-
+  export CDK_DEFAULT_ACCOUNT="${ACCOUNT}"
+  export CDK_DEFAULT_REGION="${AWS_DEFAULT_REGION}"
   if aws sts get-caller-identity --profile "${AWS_PROFILE}" >/dev/null 2>&1; then
     nice 'Already logged in'
   else
-    error 'Not logged in. Do it now in opened browser.'
-    aws sso login --profile "${AWS_PROFILE}" || return 1
-    eval $(aws configure export-credentials --profile "${AWS_PROFILE}" --format env)
+    fail 'Not logged in. Do it now in opened browser.'
+    aws sso login --profile "${AWS_PROFILE}"
   fi
+  eval "$(aws configure export-credentials --profile "${AWS_PROFILE}" --format env)"
 }
+
 
 ###############################################################################
 # AWS Secrets Manager
