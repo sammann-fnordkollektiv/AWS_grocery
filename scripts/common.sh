@@ -61,6 +61,7 @@ common_login_aws() {
   else
     error 'Not logged in. Do it now in opened browser.'
     aws sso login --profile "${AWS_PROFILE}" || return 1
+    eval $(aws configure export-credentials --profile "${AWS_PROFILE}" --format env)
   fi
 }
 
@@ -85,6 +86,15 @@ common_set_docker_env () { # 1 path
   echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}" >> "${DOCKER_ENV}"
   echo "SECRET_ID_POSTGRES_URI=${SECRET_ID_POSTGRES_URI}" >> "${DOCKER_ENV}"
   echo "SECRET_ID_JWT_SECRET_KEY=${SECRET_ID_JWT_SECRET_KEY}" >> "${DOCKER_ENV}"
+}
+
+###############################################################################
+# CDK environment
+###############################################################################
+
+common_set_cdk_env () {
+  export CDK_DEFAULT_ACCOUNT="${ACCOUNT}"
+  export CDK_DEFAULT_REGION="${AWS_DEFAULT_REGION}"
 }
 
 ###############################################################################
