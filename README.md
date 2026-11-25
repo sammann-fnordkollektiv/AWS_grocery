@@ -1,3 +1,11 @@
+# sammann-fnordkollektiv/AWS_Grocery
+
+* [x] Leave fork network to [trigger heatmap](https://docs.github.com/en/account-and-profile/reference/profile-contributions-reference).
+* [x] Reference to original repository: https://github.com/AlejandroRomanIbanez/AWS_grocery
+* [x] Set default branch to `main`
+* [ ] Inform tutors, that commits to forks are not counted by heatmap
+* [ ] Do exercises.
+ 
 # GroceryMate
 
 [Für das deutsche ReadMe hier klicken](#grocerymate-deutsch)
