@@ -5,3 +5,4 @@ frontend/src/config.js~
 venv/
 
 AWS_grocery.code-workspace
+**/.scripts/
