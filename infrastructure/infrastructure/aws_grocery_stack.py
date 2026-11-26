@@ -15,10 +15,13 @@ from aws_cdk import (
 from aws_cdk import (
     aws_elasticloadbalancingv2 as elbv2,
 )
+from aws_cdk import aws_iam as iam
 from aws_cdk import (
     aws_rds as rds,
 )
+from aws_cdk import aws_secretsmanager as secretsmanager
 from constructs import Construct
+from dotenv import dotenv_values
 
 
 class AWSGroceryStack(Stack):
@@ -71,12 +74,10 @@ class AWSGroceryStack(Stack):
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PRIVATE_ISOLATED
             ),
-            credentials=rds.Credentials.from_generated_secret(
-                "dbadmin"
-            ),  # Speichert Passwort automatisch im AWS Secrets Manager
-            database_name="appdb",
+            credentials=rds.Credentials.from_generated_secret("grocery_user"),
+            database_name="grocerymate_db",
             multi_az=False,
-            removal_policy=RemovalPolicy.DESTROY,  # Testing: is destroyed when 'cdk destroy'
+            removal_policy=RemovalPolicy.DESTROY,  # Testing, delete on cdk destory
             storage_encrypted=True,
         )
 
@@ -101,8 +102,25 @@ class AWSGroceryStack(Stack):
         task_definition = ecs.Ec2TaskDefinition(self, "AWSGrocery_TaskDefinition")
 
         #######################################################################
-        # 5. The grocery_app container
+        # 5. Allow this script (boto3) to read secrets
         #######################################################################
+
+        task_definition.add_to_task_role_policy(
+            iam.PolicyStatement(
+                actions=["secretsmanager:GetSecretValue"],
+                resources=[
+                    f"arn:aws:secretsmanager:{self.region}:{self.account}:secret:*"
+                ],
+            )
+        )
+
+        #######################################################################
+        # 6. The grocery_app container
+        #######################################################################
+
+        jwt_secret = secretsmanager.Secret.from_secret_name_v2(
+            self, "JwtSecret", "aws-grocery-jwt-secret"
+        )
 
         container = task_definition.add_container(
             "AWSGrocery_Web",
@@ -110,16 +128,21 @@ class AWSGroceryStack(Stack):
                 directory="..", file="./backend/Dockerfile"
             ),
             memory_limit_mib=512,
-            environment_files=[ecs.EnvironmentFile.from_asset("../backend/.env")],
-            # Update POSTGRES_URI once RDS is installed
-            secrets={"DB_SECRET": ecs.Secret.from_secrets_manager(db_instance.secret)},
+            environment={
+                **dict(dotenv_values("./.env")),
+            },
+            secrets={
+                "POSTGRES_UI": ecs.Secret.from_secrets_manager(db_instance.secret),
+                "JWT_SECRET_KEY": ecs.Secret.from_secrets_manager(jwt_secret),
+            },
+            logging=ecs.LogDrivers.aws_logs(stream_prefix="AWSGrocery"),
         )
         container.add_port_mappings(
             ecs.PortMapping(container_port=5000, protocol=ecs.Protocol.TCP)
         )
 
         #######################################################################
-        # 6. The service overlooking start, re-start and monitoring
+        # 7. The service overlooking start, re-start and monitoring
         #######################################################################
 
         ecs_service = ecs.Ec2Service(
@@ -133,13 +156,14 @@ class AWSGroceryStack(Stack):
         )
 
         #######################################################################
-        # 7. Connect ECS to RDS
+        # 8. Connect RDS to ECS and cluster
         #######################################################################
 
         db_instance.connections.allow_default_port_from(ecs_service)
+        db_instance.connections.allow_default_port_from(cluster)
 
         #######################################################################
-        # 8. Create loadbalancer
+        # 9. Create loadbalancer
         #######################################################################
 
         alb = elbv2.ApplicationLoadBalancer(
@@ -153,7 +177,7 @@ class AWSGroceryStack(Stack):
         listener = alb.add_listener("HttpListener", port=80, open=True)
 
         #######################################################################
-        # 9. Register ECS service at loadbalancer
+        # 10. Register ECS service at loadbalancer
         #######################################################################
 
         listener.add_targets(
@@ -165,8 +189,15 @@ class AWSGroceryStack(Stack):
         )
 
         #######################################################################
-        # 9. Create some output
+        # 11. Create some output
         #######################################################################
+
+        CfnOutput(
+            self,
+            "POSTGRES_UI",
+            value=alb.load_balancer_dns_name,
+            description="Öffentliche URL des Load Balancers",
+        )
 
         CfnOutput(
             self,
