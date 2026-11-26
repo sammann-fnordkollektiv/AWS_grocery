@@ -9,9 +9,18 @@ Naming convention in environment is "SECRET_ID_{KEY_IN_SECRETS_MANAGER}",
 example:
 
 * Key in AWS Secrets Manager: "SECRET_ID_POSTGRES_URI"
-* Value of SECRET_ID_POSTGRES_URI in running environment: AWS Secrets Manager, Seceret name
+* Value of SECRET_ID_POSTGRES_URI in running environment: AWS Secrets Manager,
+  Secret name
 * Key inside the JSON secret: "POSTGRES_URI"
 
+FIXME TODO a) the docker app uses POSTGRES_URI from the environment to access
+the database:
+* Running the app locally: Set up database and create POSTGRES_URI.
+* Running the app in ec2 with db there: Set up database an create POSTGRES_URI.
+* Running the app in AWS: Then this script's environment contains a json data
+  variable called "DB_SECRET". And the POSTGRES_URI is created from there.
+What s left to do is, to somehow use the same POSTGRES_URI creating process for
+the above two environments.
 """
 
 import json
@@ -19,22 +28,32 @@ import os
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote_plus
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError, ParamValidationError
 
-# Naming convention in environment: SECRET_ID_X. X = key in AWS Secrets Manager
-ENVIRONMENT_KEYS = ["SECRET_ID_POSTGRES_URI", "SECRET_ID_JWT_SECRET_KEY"]
-
-# Exit codes
+# SECRET_ID_POSTGRES_URI wird hier nicht mehr benötigt, da DB_SECRET direkt injiziert wird
+ENVIRONMENT_KEYS = ["SECRET_ID_JWT_SECRET_KEY"]
 
 
 def main() -> None:
-    region = get_region()
-    client = boto3.client("secretsmanager", region_name=region)
-    for environment_key in ENVIRONMENT_KEYS:
-        key, secret = get_key_and_secret(client, environment_key)
-        os.environ[key] = secret
+    # 1. POSTGRES_URI setzen (entweder aus AWS DB_SECRET oder lokal aus .env)
+    postgres_uri = get_postgres_uri()
+    if not postgres_uri:
+        fail(
+            "POSTGRES_URI could not be determined.", "FAIL_REASON_MISSING_POSTGRES_URI"
+        )
+    os.environ["POSTGRES_URI"] = postgres_uri
+
+    # 2. Restliche Secrets (wie JWT_SECRET_KEY) laden, falls SECRET_ID_* gesetzt ist
+    if any(os.getenv(k) for k in ENVIRONMENT_KEYS):
+        region = get_region()
+        client = boto3.client("secretsmanager", region_name=region)
+        for environment_key in ENVIRONMENT_KEYS:
+            key, secret = get_key_and_secret(client, environment_key)
+            os.environ[key] = secret
+
     run_py = Path(__file__).resolve().with_name("run.py")
     if not run_py.is_file():
         fail(
@@ -54,10 +73,10 @@ def get_region() -> str:
 
 def get_key_and_secret(client: Any, environment_key: str) -> tuple[str, str]:
     secret_id = get_secret_id(environment_key)
-    response = get_response_or_exit(client, secret_id)
-    secret_string = get_secret_string_or_exit(response)
+    response = get_response(client, secret_id)
+    secret_string = get_secret_string(response)
     key = environment_key.replace("SECRET_ID_", "")
-    return key, get_secret_or_exit(secret_string, key)
+    return key, get_secret(secret_string, key)
 
 
 def get_secret_id(environment_key: str) -> str:
@@ -75,7 +94,7 @@ def fail(message: str, fail_reason: str) -> None:
     raise RuntimeError(fail_reason)
 
 
-def get_response_or_exit(client: Any, secret: str) -> dict[str, Any]:
+def get_response(client: Any, secret: str) -> dict[str, Any]:
     try:
         return client.get_secret_value(SecretId=secret)
     except ParamValidationError as error:
@@ -95,14 +114,14 @@ def get_response_or_exit(client: Any, secret: str) -> dict[str, Any]:
         )
 
 
-def get_secret_string_or_exit(response: dict[str, Any]) -> str:
+def get_secret_string(response: dict[str, Any]) -> str:
     secret_string = response.get("SecretString")
     if not isinstance(secret_string, str) or not secret_string:
         fail("No 'SecretString' found.", "FAIL_REASON_NO_SECRET_STRING_FOUND")
     return secret_string
 
 
-def get_secret_or_exit(secret_string: str, key: str) -> str:
+def get_secret(secret_string: str, key: str) -> str:
     try:
         secret = json.loads(secret_string)[key]
         if isinstance(secret, str) and secret:
@@ -117,6 +136,14 @@ def get_secret_or_exit(secret_string: str, key: str) -> str:
             f"Secret not in valid JSON format and/or not including field '{key}'.",
             "FAIL_REASON_NO_VALID_JSON_OR_FIELD",
         )
+
+
+def get_postgres_uri():
+    if "DB_SECRET" in os.environ:  # environment startet in AWS
+        s = json.loads(os.environ["DB_SECRET"])
+        return f"postgresql://{s['username']}:{s['password']}@{s['host']}:{s.get('port', 5432)}/{s.get('dbname', 'grocerymate_db')}"
+    # environment startet locally (not AWS)
+    return os.environ.get("POSTGRES_URI")
 
 
 if __name__ == "__main__":
