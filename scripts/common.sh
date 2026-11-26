@@ -101,10 +101,12 @@ common_set_cdk_env () {
 }
 
 ###############################################################################
-# AWS ECR environment
+# CDK Docker environment
 ###############################################################################
 
-common_set_ecr_env() {
-  export REPO_NAME="grocery-app"
-  export REPO_URI="${ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${REPO_NAME}"
+common_set_cdk_docker_env () { # 1 path = ./infrastructure/
+  CDK_DOCKER_ENV="${1}.env"
+  echo "" > "${CDK_DOCKER_ENV}"
+  echo "SECRET_ID_POSTGRES_URI=${SECRET_ID_POSTGRES_URI}" >> "${CDK_DOCKER_ENV}"
+  echo "SECRET_ID_JWT_SECRET_KEY=${SECRET_ID_JWT_SECRET_KEY}" >> "${CDK_DOCKER_ENV}"
 }
