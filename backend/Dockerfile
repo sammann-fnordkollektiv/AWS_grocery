@@ -56,4 +56,5 @@ COPY --from=buildtime --chown=appuser:appuser /app/frontend/ /app/frontend/
 
 USER appuser
 
-CMD ["python", "run_more_securely.py"]
+# Initialize db
+CMD ["sh", "-c", "python /app/backend/aws_grocery_init_db.py && python run_more_securely.py"]
