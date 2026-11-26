@@ -10,5 +10,5 @@ venv/
 
 *.log
 scripts/
-infrastructure/
+infrastructure/*
 .scripts/
