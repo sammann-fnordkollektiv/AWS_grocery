@@ -74,8 +74,10 @@ class AWSGroceryStack(Stack):
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PRIVATE_ISOLATED
             ),
-            credentials=rds.Credentials.from_generated_secret("grocery_user"),
-            database_name="grocerymate_db",
+            credentials=rds.Credentials.from_generated_secret(
+                "grocery_user"
+            ),  # TODO variable
+            database_name="grocerymate_db",  # TODO variable
             multi_az=False,
             removal_policy=RemovalPolicy.DESTROY,  # Testing, delete on cdk destory
             storage_encrypted=True,
@@ -102,20 +104,7 @@ class AWSGroceryStack(Stack):
         task_definition = ecs.Ec2TaskDefinition(self, "AWSGrocery_TaskDefinition")
 
         #######################################################################
-        # 5. Allow this script (boto3) to read secrets
-        #######################################################################
-
-        task_definition.add_to_task_role_policy(
-            iam.PolicyStatement(
-                actions=["secretsmanager:GetSecretValue"],
-                resources=[
-                    f"arn:aws:secretsmanager:{self.region}:{self.account}:secret:*"
-                ],
-            )
-        )
-
-        #######################################################################
-        # 6. Required secrets for grocery_app
+        # 5. Allow this script (boto3) to read required secrets for grocery_app
         #######################################################################
 
         jwt_secret = secretsmanager.Secret.from_secret_partial_arn(
@@ -131,14 +120,15 @@ class AWSGroceryStack(Stack):
         )
 
         #######################################################################
-        # 7. Allow script to get the secrets
+        # 6. Allow script to get the secrets
         #######################################################################
 
-        jwt_secret.grant_read(task_definition.task_role)
         db_instance.secret.grant_read(task_definition.task_role)
+        jwt_secret.grant_read(task_definition.task_role)
+        postgres_uri.grant_read(task_definition.task_role)
 
         #######################################################################
-        # 8. The grocery_app container
+        # 7. The grocery_app container
         #######################################################################
 
         container = task_definition.add_container(
@@ -149,21 +139,20 @@ class AWSGroceryStack(Stack):
             memory_limit_mib=512,
             environment={
                 **dict(dotenv_values("./.env")),  # ./infrastructure/.env
+                "AWS_DEFAULT_REGION": self.region,  # boto3 requires REGION
             },
             secrets={
-                # ecs.Secret.from_secrets_manager(db_instance.secret) -> password of generated master user
                 "DB_SECRET": ecs.Secret.from_secrets_manager(db_instance.secret),
-                "JWT_SECRET_KEY": ecs.Secret.from_secrets_manager(jwt_secret),
-                "POSTGRES_URI": ecs.Secret.from_secrets_manager(postgres_uri),
             },
             logging=ecs.LogDrivers.aws_logs(stream_prefix="AWSGrocery"),
         )
+
         container.add_port_mappings(
             ecs.PortMapping(container_port=5000, protocol=ecs.Protocol.TCP)
         )
 
         #######################################################################
-        # 9. The service overlooking start, re-start and monitoring
+        # 8. The service overlooking start, re-start and monitoring
         #######################################################################
 
         ecs_service = ecs.Ec2Service(
@@ -177,14 +166,14 @@ class AWSGroceryStack(Stack):
         )
 
         #######################################################################
-        # 10. Connect RDS to ECS and cluster
+        # 9. Connect RDS to ECS and cluster
         #######################################################################
 
         db_instance.connections.allow_default_port_from(ecs_service)
         db_instance.connections.allow_default_port_from(cluster)
 
         #######################################################################
-        # 11. Create loadbalancer
+        # 10. Create loadbalancer
         #######################################################################
 
         alb = elbv2.ApplicationLoadBalancer(
@@ -198,7 +187,7 @@ class AWSGroceryStack(Stack):
         listener = alb.add_listener("HttpListener", port=80, open=True)
 
         #######################################################################
-        # 12. Register ECS service at loadbalancer
+        # 11. Register ECS service at loadbalancer
         #######################################################################
 
         listener.add_targets(
@@ -210,7 +199,7 @@ class AWSGroceryStack(Stack):
         )
 
         #######################################################################
-        # 13. Create some output
+        # 12. Create some output
         #######################################################################
 
         CfnOutput(
