@@ -115,12 +115,27 @@ class AWSGroceryStack(Stack):
         )
 
         #######################################################################
-        # 6. The grocery_app container
+        # 6. Required secrets for grocery_app
         #######################################################################
 
         jwt_secret = secretsmanager.Secret.from_secret_name_v2(
             self, "JwtSecret", "aws-grocery-jwt-secret"
         )
+
+        postgres_uri = secretsmanager.Secret.from_secret_name_v2(
+            self, "PostgresUri", "aws-grocery-postgres-uri"
+        )
+
+        #######################################################################
+        # 7. Allow script to get the secrets
+        #######################################################################
+
+        jwt_secret.grant_read(task_definition.task_role)
+        db_instance.secret.grant_read(task_definition.task_role)
+
+        #######################################################################
+        # 8. The grocery_app container
+        #######################################################################
 
         container = task_definition.add_container(
             "AWSGrocery_Web",
@@ -129,10 +144,11 @@ class AWSGroceryStack(Stack):
             ),
             memory_limit_mib=512,
             environment={
-                **dict(dotenv_values("./.env")),
+                **dict(dotenv_values("./.env")),  # ./infrastructure/.env
             },
             secrets={
-                "POSTGRES_UI": ecs.Secret.from_secrets_manager(db_instance.secret),
+                # ecs.Secret.from_secrets_manager(db_instance.secret) -> password of generated master user
+                "POSTGRES_URI": ecs.Secret.from_secrets_manager(postgres_uri),
                 "JWT_SECRET_KEY": ecs.Secret.from_secrets_manager(jwt_secret),
             },
             logging=ecs.LogDrivers.aws_logs(stream_prefix="AWSGrocery"),
@@ -142,7 +158,7 @@ class AWSGroceryStack(Stack):
         )
 
         #######################################################################
-        # 7. The service overlooking start, re-start and monitoring
+        # 9. The service overlooking start, re-start and monitoring
         #######################################################################
 
         ecs_service = ecs.Ec2Service(
@@ -156,14 +172,14 @@ class AWSGroceryStack(Stack):
         )
 
         #######################################################################
-        # 8. Connect RDS to ECS and cluster
+        # 10. Connect RDS to ECS and cluster
         #######################################################################
 
         db_instance.connections.allow_default_port_from(ecs_service)
         db_instance.connections.allow_default_port_from(cluster)
 
         #######################################################################
-        # 9. Create loadbalancer
+        # 11. Create loadbalancer
         #######################################################################
 
         alb = elbv2.ApplicationLoadBalancer(
@@ -177,7 +193,7 @@ class AWSGroceryStack(Stack):
         listener = alb.add_listener("HttpListener", port=80, open=True)
 
         #######################################################################
-        # 10. Register ECS service at loadbalancer
+        # 12. Register ECS service at loadbalancer
         #######################################################################
 
         listener.add_targets(
@@ -189,12 +205,12 @@ class AWSGroceryStack(Stack):
         )
 
         #######################################################################
-        # 11. Create some output
+        # 13. Create some output
         #######################################################################
 
         CfnOutput(
             self,
-            "POSTGRES_UI",
+            "POSTGRES_URI",
             value=alb.load_balancer_dns_name,
             description="Öffentliche URL des Load Balancers",
         )
