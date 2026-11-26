@@ -118,12 +118,16 @@ class AWSGroceryStack(Stack):
         # 6. Required secrets for grocery_app
         #######################################################################
 
-        jwt_secret = secretsmanager.Secret.from_secret_name_v2(
-            self, "JwtSecret", "aws-grocery-jwt-secret"
+        jwt_secret = secretsmanager.Secret.from_secret_partial_arn(
+            self,
+            "JwtSecret",
+            f"arn:aws:secretsmanager:{self.region}:{self.account}:secret:aws-grocery-jwt-secret",
         )
 
-        postgres_uri = secretsmanager.Secret.from_secret_name_v2(
-            self, "PostgresUri", "aws-grocery-postgres-uri"
+        postgres_uri = secretsmanager.Secret.from_secret_partial_arn(
+            self,
+            "PostgresUri",
+            f"arn:aws:secretsmanager:{self.region}:{self.account}:secret:aws-grocery-postgres-uri",
         )
 
         #######################################################################
@@ -148,8 +152,9 @@ class AWSGroceryStack(Stack):
             },
             secrets={
                 # ecs.Secret.from_secrets_manager(db_instance.secret) -> password of generated master user
-                "POSTGRES_URI": ecs.Secret.from_secrets_manager(postgres_uri),
+                "DB_SECRET": ecs.Secret.from_secrets_manager(db_instance.secret),
                 "JWT_SECRET_KEY": ecs.Secret.from_secrets_manager(jwt_secret),
+                "POSTGRES_URI": ecs.Secret.from_secrets_manager(postgres_uri),
             },
             logging=ecs.LogDrivers.aws_logs(stream_prefix="AWSGrocery"),
         )
