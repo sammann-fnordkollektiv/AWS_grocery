@@ -28,31 +28,21 @@ import os
 import sys
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote_plus
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError, ParamValidationError
 
-# SECRET_ID_POSTGRES_URI wird hier nicht mehr benötigt, da DB_SECRET direkt injiziert wird
 ENVIRONMENT_KEYS = ["SECRET_ID_JWT_SECRET_KEY"]
 
 
 def main() -> None:
-    # 1. POSTGRES_URI setzen (entweder aus AWS DB_SECRET oder lokal aus .env)
     postgres_uri = get_postgres_uri()
-    if not postgres_uri:
-        fail(
-            "POSTGRES_URI could not be determined.", "FAIL_REASON_MISSING_POSTGRES_URI"
-        )
     os.environ["POSTGRES_URI"] = postgres_uri
 
-    # 2. Restliche Secrets (wie JWT_SECRET_KEY) laden, falls SECRET_ID_* gesetzt ist
-    if any(os.getenv(k) for k in ENVIRONMENT_KEYS):
-        region = get_region()
-        client = boto3.client("secretsmanager", region_name=region)
-        for environment_key in ENVIRONMENT_KEYS:
-            key, secret = get_key_and_secret(client, environment_key)
-            os.environ[key] = secret
+    client = boto3.client("secretsmanager", region_name=get_region_name())
+    for environment_key in ENVIRONMENT_KEYS:
+        key, secret = get_key_and_secret(client, environment_key)
+        os.environ[key] = secret
 
     run_py = Path(__file__).resolve().with_name("run.py")
     if not run_py.is_file():
@@ -63,12 +53,14 @@ def main() -> None:
     os.execv(sys.executable, [sys.executable, str(run_py), *sys.argv[1:]])
 
 
-def get_region() -> str:
+def get_region_name() -> str:
     getenv_region = "AWS_DEFAULT_REGION"
-    region = os.getenv(getenv_region)
-    if not region:
-        raise RuntimeError(f"[FAIL] Environment {getenv_region} missing.")
-    return region
+    region_name = os.getenv(getenv_region)
+    if not region_name:
+        fail(
+            f"[FAIL] Environment {getenv_region} missing.", "FAIL_REASON_REGION_MISSING"
+        )
+    return region_name
 
 
 def get_key_and_secret(client: Any, environment_key: str) -> tuple[str, str]:
@@ -138,12 +130,20 @@ def get_secret(secret_string: str, key: str) -> str:
         )
 
 
-def get_postgres_uri():
+def get_postgres_uri() -> str:
+    postgres_uri = None
     if "DB_SECRET" in os.environ:  # environment startet in AWS
         s = json.loads(os.environ["DB_SECRET"])
-        return f"postgresql://{s['username']}:{s['password']}@{s['host']}:{s.get('port', 5432)}/{s.get('dbname', 'grocerymate_db')}"
-    # environment startet locally (not AWS)
-    return os.environ.get("POSTGRES_URI")
+        postgres_uri = f"postgresql://{s['username']}:{s['password']}@{s['host']}:{s.get('port', 5432)}/{s.get('dbname', 'grocerymate_db')}"
+    else:  # environment startet locally (not AWS)
+        postgres_uri = os.environ.get("POSTGRES_URI")
+
+    if not postgres_uri:
+        fail(
+            "POSTGRES_URI could not be determined.", "FAIL_REASON_MISSING_POSTGRES_URI"
+        )
+    else:
+        return postgres_uri
 
 
 if __name__ == "__main__":
